@@ -1,0 +1,23 @@
+# List of IP addresses (and login credentials) for Batchscanner.
+# Each line describes either an IP address/range, or login credentials.
+# Login credentials
+#       are specified as:
+#           username = login_username
+#           password = login_password
+#       and are valid until changed by additional username/password lines.
+#       If omitted, the defaults are 'admin'/'admin'
+# IP address/range
+#       Can be *any number* of the following, each on a new line:
+#           A single IP address
+#           A range of IP addresses: start and end addresses separated by a hyphen
+#           A subnet, with a forward slash denoting the number of subnet bits
+#       For example:
+#           192.168.0.100
+#           192.168.0.115
+#           10.11.12.0 - 10.11.12.254
+#           10.10.10.0/24
+#           192.168.100.0/23
+#
+username = admin
+password = admin
+192.168.0.0/24

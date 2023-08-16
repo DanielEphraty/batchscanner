@@ -1,0 +1,17 @@
+# Constants for sikcli_ssh
+
+
+tcp_timeout = 5                 # Timemout [sec] for the TCP connection
+banner_timeout = 4              # Timeout [sec] to wait for the the server to send the SSH banner
+auth_timeout = 6                # Timeout [sec] to wait for an authentication response from the server
+rw_timeout = 1                  # Timeout [sec] on blocking read/write
+response_timeout = 1            # Timeout [sec] for radio to response to a command
+many = 9999999                  # Max size of read buffer
+prompt_retries = 5              # The number of times to attempt and get the CLI prompt
+terminal_height = 5000          # Number of rows in VT100 terminal
+
+log_enable = true               # Enable logging
+log_dir = 'ssh_logs'            # Directory for log files
+log_level_console = 'CRITICAL'  # Console logger level: DEBUG, INFO, WARNING, ERROR, CRITICAL
+log_level_file = 'INFO'         # File logger level: DEBUG, INFO, WARNING, ERROR, CRITICAL
+

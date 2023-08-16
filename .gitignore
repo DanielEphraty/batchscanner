@@ -1,0 +1,19 @@
+.idea/*
+.pytest_cache/*
+__pychache__/*
+build/*
+dist/*
+
+/docs/_build/
+/doc_source/
+/docs/make.bat
+/docs/Makefile
+
+output/*
+ssh_logs/*
+
+
+
+# src/batchscanner/network.txt
+
+

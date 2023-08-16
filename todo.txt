@@ -1,0 +1,6 @@
+sikcli_ssh:
+    Improve send():
+        remove from buffer any text prior to prompt
+        remove any text following last prompt
+    Unique(credentials)
+    location of output directory

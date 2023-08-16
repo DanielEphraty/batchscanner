@@ -1,0 +1,15 @@
+# Parameters for sikcli_launcher
+
+batch_size = 1000
+script_filename = 'script.txt'
+include_eh = true
+include_bu = true
+include_tu = true
+include_tg = true
+include_tg_remote_cns = false
+multiprocessing_flag = true
+multiprocessing_num_processes = 50
+output_directory = 'output'
+save_show_tg_per_radio = false
+save_show_tg_per_radio_raw = false
+time_shift = 0
