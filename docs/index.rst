@@ -58,14 +58,24 @@ Running as a python script:
 
 
 
-Technical Documentation
-=========================
+.. toctree::
+   :hidden:
+   :caption: Quickstart
 
-Complete
+   self
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Technical Documentation
+   
+
+   synopsis
+   sikcli
+   sikcommander
+   batchscan
+   credentials
+   parsers
+   
 
 
 

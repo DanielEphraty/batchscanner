@@ -11,9 +11,10 @@ password_regex = re.compile(r'[Pp]assword\s*=\s*(\S+)')
 
 
 @dataclass
-class SikCredential:
+class Credential:
     """ A Dataclass for storing radio's login credentials: IP address, username, and password.
     """
+
     #: IP Address of radio
     ip_addr: ipaddress.IPv4Address
     #: Username to log into radio
@@ -25,32 +26,33 @@ class SikCredential:
         return self.ip_addr < other.ip_addr
 
     def __repr__(self):
-        return f"SikCredential(ipaddress.IPv4Address('{str(self.ip_addr)}'), '{self.username}', '{self.password}')"
+        return f"Credential(ipaddress.IPv4Address('{str(self.ip_addr)}'), '{self.username}', '{self.password}')"
 
     def __str__(self):
-        return f"SikCredential({str(self.ip_addr)}, {self.username}, {self.password})"
+        return f"Credential({str(self.ip_addr)}, {self.username}, {self.password})"
 
 
-class SikCredentials(abc.Sequence):
-    """ A sequence of :class:`SikCredential`, sorted by IP address
+class Credentials(abc.Sequence):
+    """ A sequence of :class:`Credential`, sorted by IP address
     """
 
     def __init__(self, items=None, *, text_to_parse=None):
         """ Initialises an instance of the class.
 
             :param items: an optional single :class:`Credential` or a sequence of :class:`Credential`
-            :type items: SikCredential | list[SikCredential]
-            :param text_to_parse: an optional text_to_parse to parse
+            :type items: Credential | list[Credential]
+            :param text_to_parse: an optional text to parse
             :type text_to_parse: str
 
-            There are 2 ways to initialise :class:`SikCredentials`:
+            There are 2 ways to initialise :class:`Credentials`:
 
-            1. If `text_to_parse` is provided, attempts to read text file `text_to_parse` and parse it to obtain:
+            1. If `text_to_parse` is provided (usually by reading the contents of a config file)
+               then parse the text to obtain:
 
                * Login credentials: username and password (example below)
                  If omitted, the defaults are 'admin'/'admin'.
 
-               * A range of IP addresses. Can be any number of the following, each on a new line:
+               * A range of IP addresses. Can be *any number* of the following, each on a new line:
                   * A single IP address
                   * A range of IP addresses: start and end addresses separated by a hyphen
                   * A subnet, with a forward slash denoting the number of subnet bits
@@ -61,15 +63,15 @@ class SikCredentials(abc.Sequence):
                     password = my_password
                     192.168.0.100
                     192.168.0.101
-                    10.11.12.0 - 10.11.12.254
+                    10.11.12.1 - 10.11.12.200
                     10.10.10.0/24
                     192.168.100.0/23
 
+               This would result in a total of  1+1+200+254+510 IP addresses.
+
             2. Alternatively, If `text_to_parse` is `None`, then `items` can be either a single :class:`Credential`
-               or a sequence of :class:`Credential`.
-
-
-
+               or a sequence of :class:`Credential`. This option is added in order to implement __getitem__(),
+               and hence the abc.Sequence protocol.
         """
 
         self.text_to_parse = text_to_parse
@@ -88,24 +90,24 @@ class SikCredentials(abc.Sequence):
         if type(item) == int:
             return self._credentials[item]
         else:
-            return SikCredentials(self._credentials[item])
+            return Credentials(self._credentials[item])
 
     def __len__(self):
         return len(self._credentials)
 
     def __repr__(self):
         if self.text_to_parse:
-            return f"SikCredentials('{self.text_to_parse}')"
+            return f"Credentials('{self.text_to_parse}')"
         else:
-            return f"SikCredentials(list_of_items)"
+            return f"Credentials(list_of_items)"
 
     def __str__(self):
         if self._credentials:
             first = self._credentials[0]
             last = self._credentials[-1]
-            return f"{len(self._credentials)} SikCredentials: from {first.ip_addr} to {last.ip_addr}"
+            return f"{len(self._credentials)} Credentials: from {first.ip_addr} to {last.ip_addr}"
         else:
-            return f"No SikCredentials"
+            return f"No Credentials"
 
     def _parse_credentials(self):
         """ Read a list of IP addresses and login credentials
@@ -134,7 +136,7 @@ class SikCredentials(abc.Sequence):
                     print(f"\tSkipping line #{row_num + 1}: host bits set: '{line}'")
                 else:
                     for host in network.hosts():
-                        credentials.append(SikCredential(host, username, password))
+                        credentials.append(Credential(host, username, password))
             # Line designates a range of addresses, e.g.: 192.168.3.10-192.168.3.14
             elif r'-' in line:
                 try:
@@ -145,7 +147,7 @@ class SikCredentials(abc.Sequence):
                     print(f"\tSkipping line #{row_num + 1}: found '-' but line syntax unknown: '{line}")
                 else:
                     for host in range(int(first_ip), int(last_ip) + 1):
-                        credentials.append(SikCredential(ipaddress.IPv4Address(host), username, password))
+                        credentials.append(Credential(ipaddress.IPv4Address(host), username, password))
             # Single IP address, e.g.: 192.168.3.5
             else:
                 try:
@@ -153,20 +155,20 @@ class SikCredentials(abc.Sequence):
                 except ipaddress.AddressValueError:
                     print(f"\tSkipping line #{row_num + 1}: invalid IP address: '{line}")
                 else:
-                    credentials.append(SikCredential(host, username, password))
+                    credentials.append(Credential(host, username, password))
 
         print(f"Parsed a total of {len(credentials)} IP addresses")
         return credentials
 
     def get_batches(self, batch_size=1000):
-        """ A generator method which yields batches at a time, where each batch is a list of :class:`SikCredential`.
+        """ A generator method which yields batches at a time, where each batch is a list of :class:`Credential`.
             In each batch, the length of the returned list is `batch_size`, except possibly for the last batch
             which may be shorter (remainder).
 
-            :param batch_size: Number of :class:`SikCredential` in each batch (defaults to 1000)
+            :param batch_size: Number of :class:`Credential` in each batch (defaults to 1000)
             :type batch_size: int
-            :return: A list of :class:`SikCredential`
-            :rtype: Generator[List[SikCredential]]
+            :return: A list of :class:`Credential`
+            :rtype: Generator[List[Credential]]
         """
         batches = len(self) // batch_size + 1
         for batch in range(batches):

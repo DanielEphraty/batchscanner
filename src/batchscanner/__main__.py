@@ -6,8 +6,8 @@ import multiprocessing
 import tomllib
 
 import batchscanner
-from batchscanner.sikcredentials import SikCredentials
-from batchscanner.batchscan import run_scan
+from batchscanner.credentials import Credentials
+from batchscanner.batchscan import run_batch
 
 
 def bold(txt: str) -> str:
@@ -97,7 +97,7 @@ def main():
         text_from_filenm = resources.files('batchscanner').joinpath(filenm).read_text()
     except FileNotFoundError:
         print(f"File not found: '{filenm}'")
-    credentials = SikCredentials(text_to_parse=text_from_filenm)
+    credentials = Credentials(text_to_parse=text_from_filenm)
     len_credentials = len(credentials)
     if len_credentials == 0:
         print(f"\nTerminating: no IP addresses found in file '{filenm}'.")
@@ -155,22 +155,22 @@ def main():
     print("Running...")
 
     # Run the bot
-    run_scan(credentials,
-             action=args.action,
-             batch_size=batch_size,
-             script=script,
-             include_bu=include_bu,
-             include_eh=include_eh,
-             include_tg=include_tg,
-             include_tg_remote_cns=include_tg_remote_cns,
-             include_tu=include_tu,
-             multiprocessing_flag=multiprocessing_flag,
-             multiprocessing_num_processes=multiprocessing_num_processes,
-             output_directory=output_directory,
-             save_show_tg_per_radio=save_show_tg_per_radio,
-             save_show_tg_per_radio_raw=save_show_tg_per_radio_raw,
-             time_shift=time_shift
-             )
+    run_batch(credentials,
+              action=args.action,
+              batch_size=batch_size,
+              script=script,
+              include_bu=include_bu,
+              include_eh=include_eh,
+              include_tg=include_tg,
+              include_tg_remote_cns=include_tg_remote_cns,
+              include_tu=include_tu,
+              multiprocessing_flag=multiprocessing_flag,
+              multiprocessing_num_processes=multiprocessing_num_processes,
+              output_directory=output_directory,
+              save_show_tg_per_radio=save_show_tg_per_radio,
+              save_show_tg_per_radio_raw=save_show_tg_per_radio_raw,
+              time_shift=time_shift
+              )
     print(f"\nCLI Bot terminated. Results saved in directory '{output_directory}'.")
 
 

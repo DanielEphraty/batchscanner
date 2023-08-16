@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Iterator
 
 from batchscanner.sikcommander import SikCommander
-from batchscanner.sikcredentials import SikCredentials
+from batchscanner.credentials import Credentials
 from batchscanner.parsers.parse_show_tg import SikShowTg
 
 
@@ -227,22 +227,22 @@ def worker_task(params):
     return commander
 
 
-def run_scan(credentials: SikCredentials, *,
-             action: str = 'scan',
-             batch_size: int = 1000,
-             script: list[str] | None = None,
-             include_eh: bool = True,
-             include_bu: bool = True,
-             include_tu: bool = True,
-             include_tg: bool = True,
-             include_tg_remote_cns: bool = True,
-             multiprocessing_flag: bool = True,
-             multiprocessing_num_processes: int = 50,
-             output_directory: str = 'output',
-             save_show_tg_per_radio: bool = True,
-             save_show_tg_per_radio_raw: bool = False,
-             time_shift: float = 0,
-             ) -> None:
+def run_batch(credentials: Credentials, *,
+              action: str = 'scan',
+              batch_size: int = 1000,
+              script: list[str] | None = None,
+              include_eh: bool = True,
+              include_bu: bool = True,
+              include_tu: bool = True,
+              include_tg: bool = True,
+              include_tg_remote_cns: bool = True,
+              multiprocessing_flag: bool = True,
+              multiprocessing_num_processes: int = 50,
+              output_directory: str = 'output',
+              save_show_tg_per_radio: bool = True,
+              save_show_tg_per_radio_raw: bool = False,
+              time_shift: float = 0,
+              ) -> None:
     """ The top-level API for running the batch CLI scanner. It performs the following:
 
         1. Loop over all IP addresses (as defined in :attr:`credentials`) in *batches*.
@@ -261,10 +261,10 @@ def run_scan(credentials: SikCredentials, *,
                      The statement: **multiprocessing.freeze_support()**
                      must be included as the first statement under *__main__* section of the calling script.
 
-        :param credentials: A sequence of :class:`SikCredential`, each designating an IP address and log-in credentials
+        :param credentials: A sequence of :class:`Credential`, each designating an IP address and log-in credentials
                             to a Siklu radio
-        :type credentials: SikCredentials
-        :param action: The action to be taken by the bot. One of:
+        :type credentials: Credentials
+        :param action: The action to be taken. One of:
                        '**scan**': identify Siklu radios;
                        '**show**': extract key metrics from radios;
                        '**script**': execute sequence of commands read from text file;
@@ -277,13 +277,13 @@ def run_scan(credentials: SikCredentials, *,
         :type batch_size: int
         :param script: Applicable only if `action` =='command': list of commands to send to radio.
         :type script: list[str]
-        :param include_eh: If True, the bot operates on EtherHaul radios
+        :param include_eh: If True, then operate on EtherHaul radios
         :type include_eh: bool
-        :param include_bu: If True,the bot operates on (classic) MultiHaul BU radios
+        :param include_bu: If True,then operate on (classic) MultiHaul BU radios
         :type include_bu: bool
-        :param include_tu: If True, the bot operates on (classic) MultiHaul TU radios
+        :param include_tu: If True, then operate on (classic) MultiHaul TU radios
         :type include_tu: bool
-        :param include_tg: If True, the bot operates on MultiHaul TG radios
+        :param include_tg: If True, then operate on MultiHaul TG radios
         :type include_tg: bool
         :param include_tg_remote_cns: Applicable to MultiHaul TG radios only: if True, `action` is
                                       applied to remote CNs (if any). Often remote CNs do not have unique

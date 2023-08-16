@@ -3,20 +3,21 @@ from dataclasses import dataclass
 import re
 from typing import Iterable
 
-from batchscanner.sikssh import SikSsh
-from batchscanner.sikcredentials import SikCredential
+from batchscanner.sikcli import SikCli
+from batchscanner.credentials import Credential
 from batchscanner.parsers.parse_show_eh import SikShowEh
 from batchscanner.parsers.parse_show_tg import SikShowTg
 
 
 @dataclass
 class SikCommand:
-    """ Dataclass for conveniently grouping a CLI command to a radio, the CLI response, and other related parameters.
+    """ Dataclass for conveniently grouping a command interaction with a radio:
+        the CLI command text, the CLI response, and other related parameters.
     """
 
     #: Command text (e.g.: 'show system') - user configured.
     command: str
-    #: Identifying label for the target radio (typically IP address and/or radio name) - user configured.
+    #: An arbitrary label for iIdentifying the target radio (typically IP address and/or radio name).
     target_id: str = ""
     #: The CLI response to :attr:`command` - updated after the command is executed.
     response: str = ""
@@ -35,7 +36,7 @@ class SikCommand:
         return string
 
     def copy(self):
-        """ A method for creating a (deep) copy of :class:`SikCommand`.
+        """ A method for creating a (deep) copy of :class:`SikCommand` instance.
         """
 
         return SikCommand(command=self.command,
@@ -63,29 +64,40 @@ class SikCommand:
 
 
 class SikCommander:
-    """ A wrapper for :class:`sikcli_ssh.SikCLI` providing higher-level methods
-        for sending script to Siklu radios, as well as scanning them.
+    """ A high-level interface for managing a CLI session with a Siklu radio, providing:
+
+        * A wrapper for :class:`batchscanner.sikcli.SikCli` for managing a CLI session
+        * A collection of *show* methods for different types of radios
+        * Methods for executing scripts (list of commands), either to just the radio itself,
+          or also to all remote CNs (relevant for **MultiHaul TG** radios).
+        * Methods for automatically setting date and time
+
+        Notable attributes include:
+
+        * :attr:`commands_sent`: keeps track of all commands sent, as a list of containers of type :class:`SikCommand`.
+        * :attr:`output`: contains the parsed outputs of *show* methods.
     """
 
-    def __init__(self, credential: SikCredential, include_tg_remote_cns: bool = False):
+    def __init__(self, credential: Credential, include_tg_remote_cns: bool = False):
         """ Create a new class instance and initiate attributes
 
         :param credential: A Dataclass for storing radio’s login credentials: IP address, username, and password
                            (refer to :class:`SikCredential`).
-        :type credential: SikCredential
-        :param include_tg_remote_cns: Relevant for TG radios only. If True, automatically repeat methods
+        :type credential: Credential
+        :param include_tg_remote_cns: Relevant for **MultiHaul TG** radios only. If True, automatically repeat methods
                                       :meth:`show_tg` and :meth:`set_tod_tg` to all remote CN radios.
         :type include_tg_remote_cns: bool
         """
 
-        #: Radio’s login credentials: IP address, username, and password (instance of :class:`SikCredential`).
+        #: Radio’s login credentials: IP address, username, and password
+        #: (instance of :class:`batchscanner.sikcredentials.Credential`).
         self.credential = credential
-        #: Relevant for TG radios only. If True, automatically repeat methods to all remote CN radios.
+        #: Relevant for **MultiHaul TG** radios only. If True, automatically repeat methods to all remote CN radios.
         self.include_tg_remote_cns = include_tg_remote_cns
         #: List of accumulated errors when transacting with radio.
         self.errors = []
-        cli = SikSsh(str(credential.ip_addr), credential.username, credential.password)
-        #: Instance of :class:`sikcli_ssh.SikSsh` (CLI session with radio).
+        cli = SikCli(str(credential.ip_addr), credential.username, credential.password)
+        #: Instance of :class:`batchscanner.sikcli_ssh.SikCli` (CLI session with radio).
         self.cli = cli
         #: Boolean flag indicating if the CLI session :attr:`cli` is connected.
         self.connected = cli.is_connected()
@@ -103,12 +115,13 @@ class SikCommander:
         self.sw = cli.sw
         #: List of script sent to radio (each element in the list is :class:`SikCommand`).
         self.commands_sent = []
-        #: List of remote radios (relevant for TG only). Populated only if :attr:`include_tg_remote_cns` is True,
+        #: List of remote radios (relevant for **MultiHaul TG** radios only).
+        #: Populated only if :attr:`include_tg_remote_cns` is True,
         #: and an attempt to extract remote CN radios is successful. Otherwise, an empty list.
         self.tg_remote_cns = []
         if self.radio_type == 'TG' and include_tg_remote_cns:
             self.get_tg_remote_cns()
-        #: Output of action taken by Commander
+        #: A list containing the parsed outputs of the *show* methods.
         self.output = []
 
     def __repr__(self):
@@ -136,7 +149,8 @@ class SikCommander:
             :return: 'EH' if radio is an EtherHaul radio,
                      'BU' if radio model is MH-B100,
                      'TU' if radio model is MH-T200 or MH-T201,
-                     'TG' if radio is a TG radio. If known, return an empty string.
+                     'TG' if radio is a MultiHaul TG radio.
+                     If unknown, return an empty string.
             :rtype: str
 
             :meta public:
@@ -184,20 +198,20 @@ class SikCommander:
         return output
 
     def send_cmds(self, commands: Iterable[str], target_id="") -> list[SikCommand]:
-        """ Send each command in `script` to radio. Each command is returned as :class:`SikCommand`, where:
+        """ Send each command in iterable `commands` to radio. Each command is returned as :class:`SikCommand`, where:
 
-             * :attr:`SikCommand.command` is a copy of the command,
+             * :attr:`SikCommand.command` is a copy of the command text,
              * :attr:`SikCommand.target_id` is an optional method argument, or else assigned as below,
              * :attr:`SikCommand.response` is the response from the radio
-             * :attr:`SikCommand.success' indicates if the command executed successfully.
+             * :attr:`SikCommand.success` indicates if the command executed successfully.
 
             After execution, each :class:`SikCommand` is appended to :attr:`commands_sent`.
             Errors (if any) are appended to :attr:`errors`.
 
-            :param commands: An iterable of script.
+            :param commands: A script (an iterable of commands)
             :type commands: Iterable[str]
             :param target_id: An optional string which is inserted into each :attr:`SikCommand.target_id`.
-                              If omitted, automatically assigned as 'radio IP: radio name'.
+                              If omitted, automatically assigned as '*radio IP: radio name*'.
             :type target_id: str
             :return: A list of :class:`SikCommand`, as explained above.
             :rtype: list[SikCommand]
@@ -225,22 +239,19 @@ class SikCommander:
         return sik_commands
 
     def send_cmds_remote_cns(self, commands: Iterable[str]) -> list[SikCommand]:
-        """ Send script (in `script`) to all remote TG CNs listed in :attr:`tg_remote_cns`:
-             1. Tunnel into a CN
-             2. Send script by calling :meth:`send_cmds` with `target_id` assigned as:
-                'radio IP: radio name' -> 'remote CN name'
+        """ Send each command in iterable `commands` to all remote TG CNs listed in :attr:`tg_remote_cns`:
+             1. Tunnel into CN
+             2. Send commands by calling :meth:`send_cmds` with `target_id` assigned as:
+                '*radio IP: radio name' -> 'remote CN name*'
              3. Tunnel out
 
             After execution, each :class:`SikCommand` is appended to :attr:`commands_sent`.
             Errors (if any) are appended to :attr:`errors`.
 
-            :param commands: A list of script.
+            :param commands: A script (an iterable of commands).
             :type commands: list[SikCommand]
-            :return: EXPLAIN BETTER A list comprising replicates of `script`, where each replicate is
-                     a deep-copy of `script`, after sending to one of the CN radios.
-                     :class:`SikCommand` attributes updated per :meth:`send_cmds`, where
-                     `target_id` is automatically assigned as: 'radio IP: radio name' -> 'remote CN name'.
-
+            :return: A list of :class:`SikCommand`. This list is n x m long, where n = number of commands in `commands`
+                     and m = number of remote CNs.
             :rtype: list[SikCommand]
         """
         commands_out = []
@@ -252,6 +263,8 @@ class SikCommander:
         return commands_out
 
     def get_tg_remote_cns(self):
+        """ Relevant for MultiHaul TG radios only. Query radio for a list of all its remote CNs
+        """
         commands_in = ['show radio-common',
                        'show radio-dn',
                        ]
@@ -264,9 +277,8 @@ class SikCommander:
         return commands_out
 
     def show_eh(self):
-        """
-        #
-        :return:
+        """ Send several *show* commands to **EtherHaul** radios, and parse the responses. Append to :attr:`output`
+            those specific parameters which are deemed of interest.
         """
         show_cmds = (SikShowEh.showsystem(),
                      SikShowEh.showsw(),
@@ -286,8 +298,13 @@ class SikCommander:
         for command, param in zip(commands, params):
             output.update(SikShowEh.parse(command.response, param))
         self.output.append(output)
+        return None
 
     def show_bu(self):
+        """ Send several *show* commands to (classic) **MultiHaul BU** radios, and parse the responses.
+            Append to :attr:`output` those specific parameters which are deemed of interest.
+         """
+
         show_cmds = (SikShowEh.showsystem(),
                      SikShowEh.showsw(),
                      SikShowEh.showinventory(),
@@ -305,8 +322,12 @@ class SikCommander:
         for command, param in zip(commands, params):
             output.update(SikShowEh.parse(command.response, param))
         self.output.append(output)
+        return None
 
     def show_tu(self):
+        """ Send several *show* commands to (classic) **MultiHaul TU** radios, and parse the responses.
+            Append to :attr:`output` those specific parameters which are deemed of interest.
+         """
         show_cmds = (SikShowEh.showsystem(),
                      SikShowEh.showsw(),
                      SikShowEh.showinventory(),
@@ -323,10 +344,11 @@ class SikCommander:
         for command, param in zip(commands, params):
             output.update(SikShowEh.parse(command.response, param))
         self.output.append(output)
+        return None
 
     def show_tg(self):
         """ Parse the output of 'show' command sent to a TG radio, and append the result
-            (represented as :class:`SikShowTg`) to :attr:`commands_sent`.
+            (represented as :class:`SikShowTg`) to :attr:`output`.
             Automatically repeated for all radios listed in :attr:`tg_remote_cns`.
 
             :return: None
@@ -342,11 +364,12 @@ class SikCommander:
         return None
 
     def set_tod(self, hours_shift: float = 0):
-        """ Configure the date and time for EH/MH radios. The date and time are copied from those of the PC
-            (running this program) with the addition of `hours_shift` (to compensate for different time zones).
+        """ Configure the date and time for **EtherHaul** and (classic) **MultiHaul** radios.
+            The date and time are copied from those of the computer (running this program),
+            with the addition of `hours_shift` (to compensate for different time zones).
 
-            :param hours_shift: delta hours added to the PC's time before sending to radio. For example,
-                                if PC time is 08:00 and `hours_shift` equals 2.5, the time configured to radio
+            :param hours_shift: delta hours added to the computer's time before sending to radio. For example,
+                                if computer time is 08:00 and `hours_shift` equals 2.5, the time configured to radio
                                 will be 10:30. The default for `hours_shift` is zero.
             :type hours_shift: float
         """
@@ -357,11 +380,12 @@ class SikCommander:
         _ = self.send_cmds(commands_in)
 
     def set_tod_tg(self, hours_shift: float = 0):
-        """ Configure the date and time for a TG radio. The date and time are copied from those of the PC
-            (running this program) with the addition of `hours_shift` (to compensate for different time zones).
+        """ Configure the date and time for **MultiHaul TG** radios.
+            The date and time are copied from those of the computer (running this program),
+            with the addition of `hours_shift` (to compensate for different time zones).
             Automatically repeated for all radios listed in :attr:`tg_remote_cns`.
 
-            :param hours_shift: delta hours added to the PC's time before sending to radio. For example,
+            :param hours_shift: delta hours added to the computer's time before sending to radio. For example,
                                 if PC time is 08:00 and `hours_shift` equals 2.5, the time configured to radio
                                 will be 10:30. The default for `hours_shift` is zero.
             :type hours_shift: float

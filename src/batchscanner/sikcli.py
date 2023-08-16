@@ -1,4 +1,4 @@
-""" Class SikSsh for low-level management of a CLI SSH session to a Siklu radio """
+""" Class SikCli for low-level management of a CLI SSH session to a Siklu radio """
 from importlib import resources
 import ipaddress
 import logging
@@ -12,26 +12,27 @@ import tomllib
 CONFIG_FILENM = 'sikssh_config.toml'  # Constants text_to_parse
 
 
-class SikSsh:
-    """ An SSH wrapper class for managing a CLI session with a Siklu radio:
+class SikCli:
+    """ An wrapper class for managing a CLI session with a Siklu radio:
 
         * Connect as an SSH client and open a virtual terminal
         * Derive the SSH banner and CLI prompt
         * Derive some basic key attributes (e.g., model)
         * Method to send a command and return the output
         * Method to tunnel into a responder (applicable for TG radios only)
+        * Logging of program interaction with radio.
 
-        SikSSH makes use of built-in constants, most relating to low-level transport and logging.
-        The values of these constants can be overriden by specifying new values in file *sikssh_config.toml*.
+        SikSSH makes use of built-in parameters, most relating to low-level transport and logging.
+        Parameters can be overriden by specifying new values in file *sikssh_config.toml*.
         For example::
 
-            Example contents of file *sikcli_ssh.toml*
-            ------------------------------
+            Example contents of file *sikssh_config.toml*
+            ---------------------------------------------
             tcp_timeout = 5
             banner_timeout = 4
             ...
 
-        Here is the list of these constants and their default values:
+        Here is the list of all parameters and their default values:
 
         ==================  ==========  =====================================================================
         Constant            Defaults     Meaning
@@ -56,22 +57,25 @@ class SikSsh:
     try:
         _params = tomllib.loads(resources.files('batchscanner').joinpath(CONFIG_FILENM).read_text())
     except FileNotFoundError:
-        print(f"SikSsh: Using default program parameters: file '{CONFIG_FILENM}' not found")
+        print(f"SikCli: Using default program parameters: file '{CONFIG_FILENM}' not found")
     except tomllib.TOMLDecodeError as e:
         print(f"Using default program parameters: invalid TOML syntax in '{CONFIG_FILENM}':\n{e}")
     finally:
-        tcp_timeout = _params.get('tcp_timeout', 5.5) # Timemout [sec] for the TCP connection
-        banner_timeout = _params.get('banner_timeout', 4) # Timeout [sec] to wait for the server to send the SSH banner
-        auth_timeout = _params.get('auth_timeout', 6) # Timeout [sec] to wait for an authentication response from the server
-        rw_timeout = _params.get('rw_timeout', 1) # Timeout [sec] on blocking read/write
-        response_timeout = _params.get('response_timeout', 1) # Timeout [sec] for radio to response to a command
+        tcp_timeout = _params.get('tcp_timeout', 5.5)  # Timemout [sec] for the TCP connection
+        banner_timeout = _params.get('banner_timeout', 4)  # Timeout [sec] to wait for the server to send the SSH banner
+        auth_timeout = _params.get('auth_timeout',
+                                   6)  # Timeout [sec] to wait for an authentication response from the server
+        rw_timeout = _params.get('rw_timeout', 1)  # Timeout [sec] on blocking read/write
+        response_timeout = _params.get('response_timeout', 1)  # Timeout [sec] for radio to response to a command
         many = _params.get('many', 9999999)  # Max size of read buffer
-        prompt_retries = _params.get('prompt_retries', 5) # The number of times to attempt and get the CLI prompt
-        terminal_height = _params.get('terminal_height', 5000) # Number of rows in VT100 terminal
+        prompt_retries = _params.get('prompt_retries', 5)  # The number of times to attempt and get the CLI prompt
+        terminal_height = _params.get('terminal_height', 5000)  # Number of rows in VT100 terminal
         log_enable = _params.get('log_enable', True)  # Enable logging
         log_dir = _params.get('log_dir', 'ssh_logs')  # Directory for log files
-        log_level_console = _params.get('log_level_console','CRITICAL')  # Console logger level: DEBUG, INFO, WARNING, ERROR, CRITICAL
-        log_level_file = _params.get('log_level_file','INFO')  # File logger level: DEBUG, INFO, WARNING, ERROR, CRITICAL
+        log_level_console = _params.get('log_level_console',
+                                        'CRITICAL')  # Console logger level: DEBUG, INFO, WARNING, ERROR, CRITICAL
+        log_level_file = _params.get('log_level_file',
+                                     'INFO')  # File logger level: DEBUG, INFO, WARNING, ERROR, CRITICAL
         del _params
 
     # Check log_dir exists, or else create it
@@ -83,8 +87,8 @@ class SikSsh:
             if not os.path.isdir(log_dir):
                 raise OSError(f"Directory '{log_dir}' exists as a file")
 
-    def __init__(self, ip_addr: str | ipaddress.IPv4Address , username: str='admin', password: str ='admin'):
-        """ Create a new instance of class :class:`SikSsh`, initiates attributes and calls :meth:`connect`
+    def __init__(self, ip_addr: str | ipaddress.IPv4Address, username: str = 'admin', password: str = 'admin'):
+        """ Create a new instance of class :class:`SikCli`, initiates attributes and calls :meth:`connect`
 
             :param ip_addr: IP address for radio
             :type ip_addr: str
@@ -123,10 +127,10 @@ class SikSsh:
         #: Instance of a `Paramiko Client <https://docs.paramiko.org/en/stable/api/client.html>`_
         self.ssh = paramiko.SSHClient()  # ssh is an instance of a Paramiko Client
         self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())  # Tolerate unknown SSH host_keys
-        # Attempt to open an SSH connection and retreive the SSH banner
+        # Attempt to open an SSH connection and retrieve the SSH banner
         self.connect()
-        # Attempt to retreive the CLI prompt
-        #self._get_prompt()
+        # Attempt to retrieve the CLI prompt
+        # self._get_prompt()
 
     def __del__(self):
         self.disconnect()
@@ -184,16 +188,17 @@ class SikSsh:
                 self.name = m[2]
                 self._logger.info(f"{self._logger_prefix()}: Identifies via prompt as {self.model}@{self.name}")
             # EH and classic MH
-            elif (m := re.match(r'(.+)>', self.prompt)):
-                if self.model:      # Banner encountered, and model extracted
+            elif m := re.match(r'(.+)>', self.prompt):
+                if self.model:  # Banner encountered, and model extracted
                     self.name = m[1]
                     self._logger.info(f"{self._logger_prefix()}: Identifies via prompt as {self.name}")
-                else:               # Added for EH-8010FX running 10.6.2 where the banner went missing
+                else:  # Added for EH-8010FX running 10.6.2 where the banner went missing
                     response = self.send('show inventory 1')
                     if m1 := re.match(r'inventory 1 desc\s+:\s+(\S+)', response):
                         self.name = m[1]
                         self.model = m1[1]
-                        self._logger.info(f"{self._logger_prefix()}: Identifies via prompt/inventory as {self.model}@{self.name}")
+                        self._logger.info(
+                            f"{self._logger_prefix()}: Identifies via prompt/inventory as {self.model}@{self.name}")
                         if m1 := re.search(r'inventory 1 serial\s+:\s+(\S+)', response):
                             self.sn = m1[1]
                         if m1 := re.search(r'inventory 1 sw-rev\s+:\s+(\S+)', response):
@@ -233,7 +238,7 @@ class SikSsh:
                 self.prompt = m[1]
         return None
 
-    def _logger_init(self):
+    def _logger_init(self) -> logging.Logger:
         """ Set up logger with two handlers: console and file
         """
         # Create logger and set level to the minimum of the console handler and file handler
@@ -252,14 +257,14 @@ class SikSsh:
             formatter = logging.Formatter("%(asctime)s - %(levelname)7s - %(message)s")
             fh.setFormatter(formatter)
             ch.setFormatter(formatter)
-            # Add hanlders to logger
+            # Add handlers to logger
             logger.addHandler(fh)
             logger.addHandler(ch)
         else:
             logger.disabled = True
         return logger
 
-    def _logger_prefix(self):
+    def _logger_prefix(self) -> str:
         """ This is a prefix to prepend all logged events"""
         if self.tunnel_stack:
             return f"{self.username}@{self.ip_addr}:{self.name}"
@@ -279,7 +284,7 @@ class SikSsh:
             :attr:`sw`      :attr:`banner`
             =============== =============================
 
-            This method is called automatically when instantiating the :class:`SikSsh`.
+            This method is called automatically when instantiating the :class:`SikCli`.
             It may be called manually after calling :meth:`disconnect`.
 
             Return True if successful, otherwise False.
@@ -317,7 +322,7 @@ class SikSsh:
                 self._logger.error(f"{self._logger_prefix()}: {self.last_err}")
                 self.disconnect()
                 return False
-            # Proceed on the basiss that SSH Terminal is open and no errors
+            # Proceed on the basis that SSH Terminal is open and no errors
             self._get_transport_and_banner()
             self._get_prompt()
             self._derive_model()
@@ -398,7 +403,7 @@ class SikSsh:
                         if remove_prompt and self.prompt:
                             while self.prompt in response_no_cmd:
                                 response_no_cmd = response_no_cmd.replace(self.prompt, '')
-                        if '@' in response_no_cmd and cmd=='show':
+                        if '@' in response_no_cmd and cmd == 'show':
                             print()
                         return response_no_cmd.strip() + ' '
                 self._logger.warning(f"{self._logger_prefix()}: No response to command '{cmd}'")
@@ -457,5 +462,3 @@ class SikSsh:
                 return False
         else:
             return False
-
-
