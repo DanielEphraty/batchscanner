@@ -1,4 +1,4 @@
-# Parameters for sikcli_launcher
+# Parameters for batchscanner launcher
 
 batch_size = 1000
 script_filename = 'script.txt'

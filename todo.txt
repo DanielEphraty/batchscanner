@@ -4,3 +4,4 @@ sikcli_ssh:
         remove any text following last prompt
     Unique(credentials)
     location of output directory
+    check argument 'silent' in SikShowTg

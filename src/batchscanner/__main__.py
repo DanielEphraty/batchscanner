@@ -4,6 +4,7 @@ import argparse
 from importlib import resources
 import multiprocessing
 import tomllib
+from sys import exit
 
 import batchscanner
 from batchscanner.credentials import Credentials
@@ -12,6 +13,7 @@ from batchscanner.batchscan import run_batch
 
 def bold(txt: str) -> str:
     """ Return `txt` with ANSI escape codes for bold typeface
+
     """
     return f"\033[1m{txt}\033[0m"
 
@@ -33,22 +35,49 @@ def parse_args():
                                 set_tod: set date and time.''')
     parser.add_argument("-n",
                         dest='network_filename',
-                        help="Filename specifying the Network (range of IP addresses to scan and login credentials). Default: '%(default)s'",
+                        help="Mandatory filename specifying the Network (range of IP addresses to scan and login credentials). Default: '%(default)s'",
                         default='network.txt')
     parser.add_argument("-c",
                         dest='config_filename',
-                        help="Configuration file for overriding default program parameters. Default: '%(default)s'",
+                        help="Optional configuration file for overriding default program parameters. Default: '%(default)s'",
                         default='config.toml')
     return parser.parse_args()
 
 
 def main():
-    """ An example command-line wrapper for launching `:func:batchscan.runscan`. This  wrapper:
-        1. Collects user-configurable parameters via:
-            - command-line arguments
-            - an optional TOML parameter file (to override default values)
-            - a mandatory file specifying the Network (range of IP addresses to scan and login credentials).
-        2. Calls the main batchscanner API: `func:batchscan.runscan`, with the above parameters.
+    """ A command-line launcher for launching ``batchscanner``.
+        This launcher:
+
+         1. Collects user-configurable parameters via:
+
+             - command-line arguments
+             - an optional TOML config file (to override default values)
+             - a mandatory file specifying the network (range of IP addresses to scan and login credentials).
+
+         2. Calls the main batchscanner API: ``batchscan.run_batch``, with the above parameters.
+
+
+        Here is a list of parameters that may be included in the optional config file.
+        Here is the list of all parameters and their default values:
+
+        =============================  =========  =====================================================================
+        Constant                       Defaults   Meaning
+        =============================  =========  =====================================================================
+        batch_size                     5.5        x
+        script_filename                ''         x
+        include_eh                     True       x
+        include_bu                     True       x
+        include_tg                     True       x
+        include_tg                     True       Max size of read buffer
+        include_tg_remote_cns          False      The number of times to attempt and get the CLI prompt
+        multiprocessing_flag           True       Number of rows in VT100 terminal
+        multiprocessing_num_processes  50         Enable/disable logging
+        output_directory               'output'   Directory for log files (will be created if necessary)
+        save_show_tg_per_radio         False      Console logger level: DEBUG, INFO, WARNING, ERROR, CRITICAL
+        save_show_tg_per_radio_raw     False      File logger level: DEBUG, INFO, WARNING, ERROR, CRITICAL
+        time_shift                     0          File logger level: DEBUG, INFO, WARNING, ERROR, CRITICAL
+        =============================  =========  =====================================================================
+
     """
 
     print(f"\nWelcome! This is a launcher for {bold('batchscan')} (ver {batchscanner.__version__}): ", end='')
@@ -159,11 +188,11 @@ def main():
               action=args.action,
               batch_size=batch_size,
               script=script,
-              include_bu=include_bu,
               include_eh=include_eh,
+              include_bu=include_bu,
+              include_tu=include_tu,
               include_tg=include_tg,
               include_tg_remote_cns=include_tg_remote_cns,
-              include_tu=include_tu,
               multiprocessing_flag=multiprocessing_flag,
               multiprocessing_num_processes=multiprocessing_num_processes,
               output_directory=output_directory,

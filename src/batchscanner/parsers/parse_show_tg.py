@@ -123,7 +123,8 @@ class SikShowTg:
             library to render the converted output as a list of dictionaries. Each dictionary is single-key, and the key
             equals one of the main sections of the 'show' output: **interfaces**, **inventory**, **system**, ...
 
-            There is no need to explicitly call this function, as it is automatically called by :meth:`__init__`.
+            There is no need to explicitly call this function, as it is automatically called
+            when instantiating class `:class:SikShowTg`.
 
             **Conversion to Standard YAML**
 

@@ -1,20 +1,22 @@
-SikCommander
-===================
+SikCommander: high-level CLI manager
+=====================================
 
 SikCommander is a CLI interface for managing a CLI session with a Siklu radio (implemented
 in *sikcommander.py*). It provides the following functionality:
 
- #. Manage a CLI session with a radio (a wrapper for :class:`batchscanner.sikcli.SikCli`)
+ #. Manage a CLI session with a radio (a wrapper for :class:`~batchscanner.sikcli.SikCli`)
  #. Run 'show' CLI commands and parse the output
  #. Perform actions, such as:
+
      - setting the time of day
      - executing a script (list of commands)
 
 SikCommander makes use of auxiliary modules to parse the output of 'show' CLI commands:
+
  * :doc:`parsers.parse_show_eh <parse_show_eh>`: for EtherHaul and (classic) MultiHaul radios
  * :doc:`parsers.parse_show_tg <parse_show_eh>`: for MultiHaul TG radios.
 
-It also makes use of :class:`batchscanner.sikcredentials.Credential` as a container for
+It also makes use of :class:`~batchscanner.credentials.Credential` as a container for
 radio's IP address, username, and password.
 
 Usage Examples:
@@ -90,6 +92,7 @@ Class Information:
 .. autoclass:: batchscanner.sikcommander.SikCommander
 
 .. autoclass:: batchscanner.sikcommander.SikCommand
+   :no-special-members:
 
 
 

@@ -5,6 +5,7 @@
 
 import os, sys
 sys.path.insert(0, os.path.abspath("../src/"))
+import batchscanner
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -12,7 +13,7 @@ sys.path.insert(0, os.path.abspath("../src/"))
 project = 'Batchscanner'
 copyright = '2023, Daniel Ephraty'
 author = 'Daniel Ephraty'
-release = '1.0.0'
+release = batchscanner.__version__
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

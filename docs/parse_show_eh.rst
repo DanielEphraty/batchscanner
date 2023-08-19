@@ -1,5 +1,5 @@
-Parsers EH
-=============
+Parser for EtherHaul and (classic) MultiHaul Radios
+===========================================================
 
 
-Place marker for documentation of parse_show_eh
+TBD

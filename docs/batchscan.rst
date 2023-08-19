@@ -1,20 +1,20 @@
-Batchscan
-==========
+Batchscan: main API
+====================
 
-Batchscan provides the main API for batchscanner: :func:`batchscanner.batchscan.run_batch`.
+Batchscan provides the main API for batchscanner: :func:`~batchscanner.batchscan.run_batch`.
 Calling this function accomplishes the following:
 
 #. Loop over all devices in a user-defined IP-address space. This space is represented
-   as :class:`batchscanner.credentials.Credentials`.
+   as :class:`~batchscanner.credentials.Credentials`.
 
-#. For each device, launch :func:`worker_task`: essentially a wrapper
-   for :class:`batchscanner.sikcommander.SikCommander`.
+#. For each device, launch :func:`~batchscanner.batchscan.worker_task`: essentially a wrapper
+   for :class:`~batchscanner.sikcommander.SikCommander`.
 
    .. note:: Worker tasks are launched in a multiprocessing framework. Refer to
-             documentation under :func:`batchscanner.batchscan.run_batch` to ensure
+             documentation under :func:`~batchscanner.batchscan.run_batch` to ensure
              this API is run correctly.
 
-#. When all worker tasks are complete, results are saved using class: :class:`batchscanner.batchscan.WriteResults`.
+#. When all worker tasks are complete, results are saved using class: :class:`~batchscanner.batchscan.WriteResults`.
 
 Because the IP address space may be very large, a facility provided to process them in *batches*, where (partial)
 results are saved after each batch completes. Multiple batches have an overhead on execution time

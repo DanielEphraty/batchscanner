@@ -258,7 +258,7 @@ def run_batch(credentials: Credentials, *,
            file management issues.
 
         .. warning:: In order to successfully use this function under the Multiprocessing Pool framework,
-                     The statement: **multiprocessing.freeze_support()**
+                     the statement: **multiprocessing.freeze_support()**
                      must be included as the first statement under *__main__* section of the calling script.
 
         :param credentials: A sequence of :class:`Credential`, each designating an IP address and log-in credentials
