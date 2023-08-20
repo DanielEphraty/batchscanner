@@ -8,6 +8,9 @@ Batchscanner
 
 :Release: |release|
 
+.. warning::
+   Project still under development.
+
 :program:`Batchscanner` is a program to batch-query or batch-configure multiple Siklu radios
 via their CLI (SSH) interface.
 It operates over a user-defined range of IP addresses and/or networks, executes some action,

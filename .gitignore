@@ -14,5 +14,4 @@ ssh_logs/*
 
 
 
-/src/batchscanner/network.txt
 /src/batchscanner/__main__.spec
