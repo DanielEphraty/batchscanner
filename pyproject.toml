@@ -21,7 +21,7 @@ requires-python = ">=3.11"
 
     [project.optional-dependencies]
     build = ["build", "twine"]
-    dev   = []
+    dev   = ["sphinx-rtd-theme"]
 
     [project.scripts]
     realpython = "batchscanner.__main__:main"
