@@ -4,9 +4,9 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "bachscanner-siklu"
-version = "0.1.0"
+version = "0.1.1"
 description = "Batch-query/configure multiple Siklu radios via their CLI (SSH) interface"
-readme = "src/index.rst"
+readme = "README.rst"
 authors = [{ name = "Daniel Ephraty", email = "daniel@ephraty.com" }]
 license = { file = "LICENCE" }
 keywords = ["cli", "batch", "siklu", "siklu radios"]
@@ -24,7 +24,7 @@ requires-python = ">=3.11"
     dev   = ["sphinx-rtd-theme"]
 
     [project.scripts]
-    realpython = "batchscanner.__main__:main"
+    batchscanner = "batchscanner.__main__:main"
 
     [project.urls]
     repository    = "https://github.com/DanielEphraty/batchscanner"

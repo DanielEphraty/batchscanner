@@ -18,6 +18,6 @@ options:
 """
 
 __author__ = 'Daniel Ephraty'
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 
 

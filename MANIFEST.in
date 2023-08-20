@@ -1,0 +1,4 @@
+global-include config.toml
+global-include sikssh_config.toml
+global-include network.txt
+global-include script.txt
