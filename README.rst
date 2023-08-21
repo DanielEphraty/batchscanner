@@ -6,7 +6,7 @@ via their CLI (SSH) interface.
 It operates over a user-defined range of IP addresses and/or networks, executes some action,
 and writes the results to csv/txt files.
 
-**note**: This program is a personal initiative and contribution.
+**Note**: This program is a personal initiative and contribution.
 Although it is designed for managing radios by `Siklu Communications <https://www.siklu.com>`_, no use
 has been made of any company resources, nor any intellectual proprietary nor
 confidential information.
@@ -37,7 +37,8 @@ This option does not require a Python environment set up.
 
 #. Download one of the following zip files based on your OS:
 
-   - Windows 64bit: https://github.com/DanielEphraty/batchscanner/releases/latest/download/batchscanner-x64.zip
+   - Windows 64bit:
+     `download link <https://github.com/DanielEphraty/batchscanner/releases/latest/download/batchscanner-x64.zip>`_
 
 #. Extract the zip file to your local drive
 
@@ -52,29 +53,32 @@ As a Python package
 Usage
 ======
 
-#. Use a standard text editor to edit the `default network file <Network file>`_ ``network.txt`` to specify
+#. Use a standard text editor to edit the default `network file <Network file_>`_ ``network.txt`` to specify
    the range of IP addresses, and log-in credentials to the radio.
    Alternatively, create a new file and refer to it with the -c option (below).
-#. If required, use a standard text editor to edit the default program parameters file ``config.toml``.
-   Alternatively, create a nw file and refer to it with the -p option (below).
+#. If required, use a standard text editor to edit the default program
+   `config file <Config file_>`_ ``config.toml``.
+   Alternatively, create a new file and refer to it with the -p option (below).
 #. Run the script:
 
-.. code-block:: none
+    .. code-block:: none
 
-	Usage: batchscanner [-h] [-a {scan,show,script,set_tod}] [-n NETWORK_FILENAME] [-c CONFIG_FILENAME]
+        Usage: batchscanner [-h] [-a {scan,show,script,set_tod}] [-n NETWORK_FILENAME] [-c CONFIG_FILENAME]
 
-	options:
-	  -h, --help            Show this help message and exit
-	  -a {scan,show,script,set_tod}
-				Action for batchscanner to take (default: show). One of:
-					scan: scan the network and identify which IP address is a Siklu radio;
-					show: extract key metrics from radios (parsed outputs of 'show' commands);
-					script: execute a script: send list of commands read from text file;
-					set_tod: set date and time.
-	  -n NETWORK_FILENAME   Mandatory filename specifying the Network (range of IP addresses to scan and login credentials.
-				Default: 'network.txt'
-	  -c CONFIG_FILENAME    Optional configuration file for overriding default program parameters.
-				Default: 'config.toml'
+        options:
+          -h, --help            Show this help message and exit
+          -a {scan,show,script,set_tod}
+                    Action for batchscanner to take (default: show). One of:
+                        scan: scan the network and identify which IP address is a Siklu radio;
+                        show: extract key metrics from radios (parsed outputs of 'show' commands);
+                        script: execute a script: send list of commands read from text file;
+                        set_tod: set date and time.
+          -n NETWORK_FILENAME   Mandatory filename specifying the Network (range of IP addresses to scan and login credentials.
+                    Default: 'network.txt'
+          -c CONFIG_FILENAME    Optional configuration file for overriding default program parameters.
+                    Default: 'config.toml'
+
+
 
 Network file
 --------------
