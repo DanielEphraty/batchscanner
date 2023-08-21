@@ -1,50 +1,67 @@
 
-**Project still under development.**
+**Note: Project still under development.**
 
-``Batchscanner`` is a program to batch-query or batch-configure multiple Siklu radios
+Batchscanner is a script to batch-scan and/or query and/or configure multiple Siklu radios
 via their CLI (SSH) interface.
 It operates over a user-defined range of IP addresses and/or networks, executes some action,
 and writes the results to csv/txt files.
 
-.. note:: This program is a personal initiative and contribution.
-   Although it is designed
-   for managing radios by `Siklu Communications <https://www.siklu.com>`_, no use
-   has been made of any company resources, nor any intellectual proprietary nor
-   confidential information.
+**note**: This program is a personal initiative and contribution.
+Although it is designed for managing radios by `Siklu Communications <https://www.siklu.com>`_, no use
+has been made of any company resources, nor any intellectual proprietary nor
+confidential information.
 
-`Batchscanner` is a program to batch-query or batch-configure
-multiple Siklu radios via their CLI (SSH) interface.
-It operates over a user-defined range of IP addresses and/or networks, and supports
-the following *actions*:
+Batchscanner supports the following *actions*:
 
  - **scan**: For each IP address, identify if the device is a Siklu radio, and if so what kind.
    Information is extracted from the SSH banner (if one exists) and/or from the CLI prompt.
  -  **show**: executes CLI 'show' commands to extract key metrics from each radios (e.g., link up/down).
  - **script**: executes a sequence of commands read from text file.
- - **set_tod**: configure the date and time of the radios based on that of the computer (running Batchscanner).
+ - **set_tod**: configure the date and time of the radios based on that of the computer.
 
-Actions can be applied to specific types of radios,
-according to the following classification:
+Actions can be applied to specific types of radios, according to the following classification:
 
  - **EH**: Etherhaul radios
  - **BU**: Classic MultiHaul base units (BUs)
  - **TU**: Classic MultiHul terminal units (TUs)
- - **TG**: MultiHaul TG radios. For these radios, there is a further option for `Batchscanner` to action
+ - **TG**: MultiHaul TG radios. For these radios, there is a further option for batchscanner to action
    over remote CNs (which may not have unique IP addresses).
 
-Results are written to text and/or csv files.
+Installation
+=============
+
+As a standalone executable script
+----------------------------------
+
+This option does not require a Python environment set up.
+
+#. Download one of the following zip files based on your OS:
+
+   - Windows 64bit: https://github.com/DanielEphraty/batchscanner/releases/latest/download/batchscanner-x64.zip
+
+#. Extract the zip file to your local drive
+
+As a Python package
+--------------------
+
+.. code-block::
+
+   $ pip install batchscanner-siklu
 
 
 Usage
 ======
 
-Running as a python script:
-
-.. _usage:
+#. Use a standard text editor to edit the `default network file <Network file>`_ ``network.txt`` to specify
+   the range of IP addresses, and log-in credentials to the radio.
+   Alternatively, create a new file and refer to it with the -c option (below).
+#. If required, use a standard text editor to edit the default program parameters file ``config.toml``.
+   Alternatively, create a nw file and refer to it with the -p option (below).
+#. Run the script:
 
 .. code-block:: none
 
-	Usage: python -m batchscanner [-h] [-a {scan,show,script,set_tod}] [-n NETWORK_FILENAME] [-c CONFIG_FILENAME]
+	Usage: batchscanner [-h] [-a {scan,show,script,set_tod}] [-n NETWORK_FILENAME] [-c CONFIG_FILENAME]
 
 	options:
 	  -h, --help            Show this help message and exit
@@ -87,7 +104,8 @@ Config file
 
 The configuration file (simple `TOML <https://toml.io/en/>`_  format) may be used to override
 the default program parameters. For a list of these parameters and their respective
-meanings, refer to `project documentation <https://batchscanner.readthedocs.io/en/latest/>`_.
+meanings, refer to the *Parameters* section of the documentation for the
+`run_batch function <https://batchscanner.readthedocs.io/en/latest/batchscan.html#function-information>`_.
 
 Example content of config file
 

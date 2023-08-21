@@ -3,6 +3,7 @@
 __pychache__/*
 build/*
 dist/*
+bin/*
 
 /docs/_build/
 /doc_source/
