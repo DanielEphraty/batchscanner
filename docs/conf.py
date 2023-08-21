@@ -13,7 +13,7 @@ import batchscanner
 project = 'Batchscanner'
 copyright = '2023, Daniel Ephraty'
 author = 'Daniel Ephraty'
-release = batchscanner.__version__
+version = batchscanner.__version__
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

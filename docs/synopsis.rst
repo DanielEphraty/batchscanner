@@ -1,7 +1,7 @@
 Synopsis
 ========================
 
-:program:`Batchscanner` is a program to batch-query or batch-configure multiple Siklu radios
+:program:`Batchscanner` is a script to batch-scan and/or query and/or configure multiple Siklu radios
 via their CLI (SSH) interface.
 
 The main API is the function :func:`batchscanner.batchscan.run_batch`, and a command-line launcher for this API

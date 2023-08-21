@@ -33,8 +33,8 @@ Actions can be applied to specific types of radios, according to the following c
 Installation
 =============
 
-As a standalone executable script
-----------------------------------
+As a standalone (executable) script
+------------------------------------
 
 This option does not require a Python environment set up.
 
@@ -45,10 +45,10 @@ This option does not require a Python environment set up.
 
 #. Extract the zip file to your local drive
 
-As a Python package
+As a Python script
 --------------------
 
-.. code-block::
+.. code-block:: shell
 
    $ pip install batchscanner-siklu
 
@@ -60,7 +60,7 @@ Usage
    the range of IP addresses, and log-in credentials to the radio.
    Alternatively, create a new file and refer to it with the -c option (below).
 #. If required, use a standard text editor to edit the default program
-   `config file <Config file_>`_ ``config.toml``.
+   `configuration file <Config file_>`_ ``config.toml``.
    Alternatively, create a new file and refer to it with the -p option (below).
 #. Run the script:
 
@@ -95,9 +95,9 @@ The range of IP addresses is specified as a text file, with the following format
     - A range of IP addresses: start and end addresses, separated by a hyphen
     - A subnet with a forward slash denoting the number of subnet bits.
 
-Example content of network file defining a total of 1 + 200 + 252 IP addresses
+Example content of network file defining a total of 1 + 200 + 252 IP addresses:
 
-.. code-block::
+.. code-block:: shell
 
    username = admin
    password = admin
@@ -114,9 +114,9 @@ the default program parameters. For a list of these parameters and their respect
 meanings, refer to the *Parameters* section of the documentation for the
 `run_batch function <https://batchscanner.readthedocs.io/en/latest/batchscan.html#function-information>`_.
 
-Example content of config file
+Example content of configuration file:
 
-.. code-block::
+.. code-block:: shell
 
     batch_size = 1000                     # Number of IP addresses in single batch (results saved after each batch)
     script_filename = 'script.txt'        # filename containing list of commands to send to radio (applicable only if action='script')
