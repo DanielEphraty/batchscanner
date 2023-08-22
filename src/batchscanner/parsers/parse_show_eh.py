@@ -1,3 +1,5 @@
+""" A parser for 'show' outputs of EtherHaul and (classic) MultiHaul radios """
+
 from dataclasses import dataclass
 import re
 
@@ -13,7 +15,7 @@ class CliResponseParams:
 
 
 class SikShowEh:
-    """
+    """ Complete doc
 
     """
 
@@ -41,9 +43,6 @@ class SikShowEh:
                     value = param.format_func(value)
                 output[param.name] = value
         return output
-        
-
-
 
     ### Move to commander
     """
@@ -78,7 +77,6 @@ class SikShowEh:
                   CliResponseParams('bu_guest', r'guest-connection\s*:\s(\S*)\s'),
                   ]
         return cmd, params
-        
 
     @staticmethod
     def showeth1():
@@ -87,7 +85,6 @@ class SikShowEh:
                   CliResponseParams('eth1_speed', r'eth1\s+eth-act-type\s*:\s(\S*)\s'),
                   ]
         return cmd, params
-        
 
     @staticmethod
     def showeth2():
@@ -96,8 +93,6 @@ class SikShowEh:
                   CliResponseParams('eth2_speed', r'eth2\s+eth-act-type\s*:\s(\S*)\s'),
                   ]
         return cmd, params
-        
-
 
     @staticmethod
     def showeth3():
@@ -106,7 +101,6 @@ class SikShowEh:
                   CliResponseParams('eth3_speed', r'eth3\s+eth-act-type\s*:\s(\S*)\s'),
                   ]
         return cmd, params
-        
 
     @staticmethod
     def showeth4():
@@ -115,10 +109,9 @@ class SikShowEh:
                   CliResponseParams('eth4_speed', r'eth4\s+eth-act-type\s*:\s(\S*)\s'),
                   ]
         return cmd, params
-        
 
     @staticmethod
-    def showuseractivitylog(tail_length = 1):
+    def showuseractivitylog(tail_length=1):
         cmd = "show user-activity-log"
         params = [CliResponseParams('events_log', r'(?s)(.*)', tail_length)]
         return cmd, params
@@ -138,7 +131,7 @@ class SikShowEh:
         return cmd, params
 
     @staticmethod
-    def showlog(tail_length = 1):
+    def showlog(tail_length=1):
         cmd = "show log"
         params = [CliResponseParams('events_log', r'(?s)(.*)', tail_length)]
         return cmd, params
@@ -147,7 +140,7 @@ class SikShowEh:
     def showremoteterminalunit():
         cmd = "show remote-terminal-unit"
         params = []
-        for idx in range(1,9):
+        for idx in range(1, 9):
             params += [CliResponseParams(f'rtu{idx}_mac', fr'{idx} mac\s*:\s(\S*)\s'),
                        CliResponseParams(f'rtu{idx}_status', fr'{idx} status\s*:\s(\S*)\s'),
                        CliResponseParams(f'rtu{idx}_assoc', fr'{idx} association\s*:\s(\S*)\s'),
@@ -200,7 +193,7 @@ class SikShowEh:
         active_sw_regex += r'|^\d\s*\S*?([0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}).*wait-accept\s+yes'
         offline_sw_regex = r'(?m)^\d\s*\S*?([0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}).*no\s+no'
         offline_sw_regex += r'|^\d\s*\S*?([0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}).*no\s+yes'
-        params = [CliResponseParams('sw_active',active_sw_regex),
+        params = [CliResponseParams('sw_active', active_sw_regex),
                   CliResponseParams('sw_offline', offline_sw_regex),
                   ]
         return cmd, params
@@ -218,4 +211,3 @@ class SikShowEh:
                                     0, SikShowEh._time_to_days),
                   ]
         return cmd, params
-        

@@ -1,11 +1,13 @@
-Credentials
-===================
+Credentials: login details
+=============================
 
-Two classes for managing radio login credentials (implemented in *credentials.py*):
- * :class:`~batchscanner.credentials.Credential` representing a single set of credentials (IP address, username, password)
- * :class:`~batchscanner.credentials.Credentials` representing a sequence of (one or more) :class:`Credential`
+``credentials.py`` implements two classes for managing radio login credentials:
 
-.. _creds_example:
+ * :class:`~batchscanner.credentials.Credential` representing a single set of credentials
+   (IP address, username, password).
+ * :class:`~batchscanner.credentials.Credentials` representing a sequence of
+   (one or more) :class:`~batchscanner.credentials.Credential`.
+
 
 Usage Examples:
 ----------------------

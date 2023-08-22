@@ -1,7 +1,7 @@
-Batchscan: main API
-====================
+Batchscan: batch engine
+========================
 
-Batchscan provides the main API for batchscanner: :func:`~batchscanner.batchscan.run_batch`.
+``batchscan.py`` implements the main API for batchscanner: :func:`~batchscanner.batchscan.run_batch`.
 Calling this function accomplishes the following:
 
 #. Loop over all devices in a user-defined IP-address space. This space is represented
@@ -9,10 +9,6 @@ Calling this function accomplishes the following:
 
 #. For each device, launch :func:`~batchscanner.batchscan.worker_task`: essentially a wrapper
    for :class:`~batchscanner.sikcommander.SikCommander`.
-
-   .. note:: Worker tasks are launched in a multiprocessing framework. Refer to
-             documentation under :func:`~batchscanner.batchscan.run_batch` to ensure
-             this API is run correctly.
 
 #. When all worker tasks are complete, results are saved using class: :class:`~batchscanner.batchscan.WriteResults`.
 

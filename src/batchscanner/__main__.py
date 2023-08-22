@@ -1,21 +1,15 @@
-""" A working example launcher for batchscanner """
+""" A command-line script for launching batchscanner """
 
 import argparse
 from importlib import resources
 import multiprocessing
-import tomllib
 from sys import exit
+import tomllib
+
 
 import batchscanner
 from batchscanner.credentials import Credentials
 from batchscanner.batchscan import run_batch
-
-
-def bold(txt: str) -> str:
-    """ Return `txt` with ANSI escape codes for bold typeface
-
-    """
-    return f"\033[1m{txt}\033[0m"
 
 
 def parse_args():
@@ -45,7 +39,8 @@ def parse_args():
 
 
 def main():
-    """ A command-line launcher for launching ``batchscanner``.
+    """ A command-line launcher for ``batchscanner``.
+
         This launcher:
 
          1. Collects user-configurable parameters via:
@@ -54,40 +49,38 @@ def main():
              - an optional TOML config file (to override default values)
              - a mandatory file specifying the network (range of IP addresses to scan and login credentials).
 
-         2. Calls the main batchscanner API: ``batchscan.run_batch``, with the above parameters.
+         2. Calls the main batchscanner API: :func:`~batchscanner.__main__.run_batch`, with the above parameters.
 
+        Here is a list of parameters that may be included in the optional config file, along with
+        their default values:
 
-        Here is a list of parameters that may be included in the optional config file.
-        Here is the list of all parameters and their default values:
-
-        =============================  =========  =====================================================================
-        Constant                       Defaults   Meaning
-        =============================  =========  =====================================================================
-        batch_size                     5.5        x
-        script_filename                ''         x
-        include_eh                     True       x
-        include_bu                     True       x
-        include_tg                     True       x
-        include_tg                     True       Max size of read buffer
-        include_tg_remote_cns          False      The number of times to attempt and get the CLI prompt
-        multiprocessing_flag           True       Number of rows in VT100 terminal
-        multiprocessing_num_processes  50         Enable/disable logging
-        output_directory               'output'   Directory for log files (will be created if necessary)
-        save_show_tg_per_radio         False      Console logger level: DEBUG, INFO, WARNING, ERROR, CRITICAL
-        save_show_tg_per_radio_raw     False      File logger level: DEBUG, INFO, WARNING, ERROR, CRITICAL
-        time_shift                     0          File logger level: DEBUG, INFO, WARNING, ERROR, CRITICAL
-        =============================  =========  =====================================================================
-
+        =============================  ========  ===========================================================================================================
+        Constant                       Defaults  Meaning
+        =============================  ========  ===========================================================================================================
+        batch_size                     1000      Number of IP addresses in single batch (results saved after each batch)
+        script_filename                ''        filename containing list of commands to send to radio (applicable only if action='script')
+        include_eh                     true      If true, action EtherHaul radios
+        include_bu                     true      If true, action MultiHaul BU radios
+        include_tu                     true      If true, action MultiHaul TU radios
+        include_tg                     true      If true, action MultiHaul TG radios
+        include_tg_remote_cns          false     If true, action all remote CNs (applicable only to TG DNs)
+        multiprocessing_flag           true      If true, Run concurrently (much faster running time)
+        multiprocessing_num_processes  50        Number of processes to run concurrently
+        output_directory               'output'  Results are written to this directory
+        save_show_tg_per_radio         false     If true, save also parsed 'show' output per radio (applicable only to TG)
+        save_show_tg_per_radio_raw     false     If true, save aso the raw (unparsed) 'show' output per radio (applicable only to TG)
+        time_shift                     0         Number of hours to add to computer time when configuring date/time (applicable only if action='set_tod')
+        =============================  ========  ===========================================================================================================
     """
 
-    print(f"\nWelcome! This is a launcher for {bold('batchscan')} (ver {batchscanner.__version__}): ", end='')
+    print(f"\nWelcome to {bold('batchscanner')} (ver {batchscanner.__version__}): ", end='')
     print(f"a batch tool for Siklu radios.")
     print(f"Author: {batchscanner.__author__}, 2023.\n")
 
     # Parse command-line arguments
     args = parse_args()
 
-    # Parse TOML config file and override default parameters
+    # Parse TOML config file and (where applicable) override default parameters
     filenm = args.config_filename
     _params = {}
     try:
@@ -180,7 +173,7 @@ def main():
         else:
             print(f" (without tunneling into remote CNs")
     print(f"\tOutput Dir:\t{output_directory}")
-    input(f"\nPress enter to launch the CLI bot...\n")
+    input(f"\nPress enter to launch Batchscanner...\n")
     print("Running...")
 
     # Run the bot
@@ -200,7 +193,15 @@ def main():
               save_show_tg_per_radio_raw=save_show_tg_per_radio_raw,
               time_shift=time_shift
               )
-    print(f"\nCLI Bot terminated. Results saved in directory '{output_directory}'.")
+    print(f"\nBatchscanner terminated. Results saved in directory '{output_directory}'.")
+    return None
+
+
+def bold(txt: str) -> str:
+    """ Return `txt` with ANSI escape codes for bold typeface
+
+    """
+    return f"\033[1m{txt}\033[0m"
 
 
 if __name__ == '__main__':

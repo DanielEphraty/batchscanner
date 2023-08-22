@@ -1,4 +1,5 @@
 """ Class SikCli for low-level management of a CLI SSH session to a Siklu radio """
+
 from importlib import resources
 import ipaddress
 import logging

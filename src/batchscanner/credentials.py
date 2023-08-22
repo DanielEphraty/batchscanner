@@ -71,7 +71,9 @@ class Credentials(abc.Sequence):
 
             2. Alternatively, If `text_to_parse` is `None`, then `items` can be either a single :class:`Credential`
                or a sequence of :class:`Credential`. This option is added in order to implement __getitem__(),
-               and hence the abc.Sequence protocol.
+               and hence the
+               `abc.Sequence <https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence>`_
+               protocol.
         """
 
         self.text_to_parse = text_to_parse

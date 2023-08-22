@@ -1,8 +1,8 @@
-SikCli: low-level CLI manager
+SikCli: CLI manager
 ==============================
 
-SikCli is a low-level class for managing CLI sessions with a Siklu radio (implemented in
-``sikcli.py``). It essentially wraps
+``sikcli.py`` implements :class:`~batchscanner.sikcli.SikCli`, a low-level class for managing CLI sessions
+with a Siklu radio. It essentially wraps
 `Paramiko <https://docs.paramiko.org/en/stable/index.html>`_, customising it for the Siklu CLI.
 
 .. note::

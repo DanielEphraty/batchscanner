@@ -1,3 +1,5 @@
+""" CLI Commander: methods for executing scripts and parsing 'show' outputs """
+
 import datetime
 from dataclasses import dataclass
 import re

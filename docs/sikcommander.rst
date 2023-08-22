@@ -1,8 +1,8 @@
-SikCommander: high-level CLI manager
+SikCommander: CLI commander
 =====================================
 
-SikCommander is a CLI interface for managing a CLI session with a Siklu radio (implemented
-in *sikcommander.py*). It provides the following functionality:
+``sikcommander.py`` implements :class:`~batchscanner.sikcommander.SikCommander`: a CLI commander
+for high-level management of CLI session with a Siklu radio. It provides the following functionality:
 
  #. Manage a CLI session with a radio (a wrapper for :class:`~batchscanner.sikcli.SikCli`)
  #. Run 'show' CLI commands and parse the output

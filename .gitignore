@@ -16,3 +16,4 @@ ssh_logs/*
 
 
 /src/batchscanner/__main__.spec
+/batchscanner-x64.spec

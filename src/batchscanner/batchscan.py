@@ -1,5 +1,10 @@
-""" The main API for the batch CLI scanner
+""" The batch engine for Batchscanner
+
+    The main API is run_batch(), which executes some action by invoking SikCommander across all devices
+    in a user-defined IP address space.
+    This module also implements class WriteResults which saves the results into csv/text files.
 """
+
 import csv
 import datetime
 import multiprocessing
@@ -9,222 +14,6 @@ from typing import Iterator
 from batchscanner.sikcommander import SikCommander
 from batchscanner.credentials import Credentials
 from batchscanner.parsers.parse_show_tg import SikShowTg
-
-
-class WriteResults:
-    """ A collection of functions for saving the scan results in multiple text files.
-    """
-
-    def __init__(self, *,
-                 dir_output_name: str = 'output',
-                 dir_show_tg_per_radio_name: str = 'show_tg_per_radio',
-                 dir_show_tg_per_radio_raw_name: str = 'show_tg_per_radio_raw',
-                 filenm_scan: str = 'scan_results.csv',
-                 filenm_cmds: str = 'cmds_results.csv',
-                 filenm_show_eh: str = 'show_eh.csv',
-                 filenm_show_bu: str = 'show_bu.csv',
-                 filenm_show_tu: str = 'show_tu.csv',
-                 filenm_show_tg_interfaces: str = 'show_tg_interfaces.csv',
-                 filenm_show_tg_inventory: str = 'show_tg_inventory.csv',
-                 filenm_show_tg_ip: str = 'show_tg_ip.csv',
-                 filenm_show_tg_links: str = 'show_tg_links.csv',
-                 filenm_show_tg_node: str = 'show_tg_node.csv',
-                 filenm_show_tg_sectors: str = 'show_tg_sectors.csv',
-                 filenm_show_tg_system: str = 'show_tg_system.csv',
-                 filenm_errors: str = 'errors.csv',
-                 save_show_tg_per_radio: bool = True,
-                 save_show_tg_per_radio_raw: bool = False,
-                 ):
-        """
-
-        :param dir_output_name: Name of the directory into which results are written
-        :param dir_show_tg_per_radio_name: Name of directory into which *show* results for individual TG radios
-                                           are written. Applicable only if `save_show_tg_per_radio` == True.
-        :param dir_show_tg_per_radio_raw_name: Name of directory into which raw *show* output for individual TG radios
-                                               are written. Applicable only if `save_show_tg_per_radio_raw` == True.
-        :param filenm_scan: Output filename for scan results.
-        :param filenm_cmds: Output filename for script results.
-        :param filenm_show_eh: Output filename for show results of EH radios.
-        :param filenm_show_bu: Output filename for show results of BU radios.
-        :param filenm_show_tu: Output filename for show results of TU radios.
-        :param filenm_show_tg_interfaces: Output filename for show results of TG radios: **interfaces** section.
-        :param filenm_show_tg_inventory: Output filename for show results of TG radios: **inventory** section.
-        :param filenm_show_tg_ip: Output filename for show results of TG radios: **ip** section.
-        :param filenm_show_tg_links: Output filename for show results of TG radios: **links** section.
-        :param filenm_show_tg_node:  Output filename for show results of TG radios: **node** section.
-        :param filenm_show_tg_sectors:  Output filename for show results of TG radios: **sectors** section.
-        :param filenm_show_tg_system:  Output filename for show results of TG radios: **system** section.
-        :param filenm_errors: Output filename for errors
-        :param save_show_tg_per_radio: Applicable to TG radios only: If True, save the output of 'show' for
-                                       individual radios.
-        :param save_show_tg_per_radio_raw: Applicable to TG radios only: If True, save the raw dump output of
-                                           'show' for individual radios.
-        """
-        self.dirname_output = dir_output_name
-        self.dirname_show_tg_per_radio = dir_show_tg_per_radio_name
-        self.dirname_show_tg_per_radio_raw = dir_show_tg_per_radio_raw_name
-        self.filenm_scan = filenm_scan
-        self.filenm_cmds = filenm_cmds
-        self.filenm_show_eh = filenm_show_eh
-        self.filenm_show_bu = filenm_show_bu
-        self.filenm_show_tu = filenm_show_tu
-        self.filenm_show_tg_interfaces = filenm_show_tg_interfaces
-        self.filenm_show_tg_inventory = filenm_show_tg_inventory
-        self.filenm_show_tg_ip = filenm_show_tg_ip
-        self.filenm_show_tg_links = filenm_show_tg_links
-        self.filenm_show_tg_node = filenm_show_tg_node
-        self.filenm_show_tg_sectors = filenm_show_tg_sectors
-        self.filenm_show_tg_system = filenm_show_tg_system
-        self.filenm_errors = filenm_errors
-        self.save_show_tg_per_radio = save_show_tg_per_radio
-        self.save_show_tg_per_radio_raw = save_show_tg_per_radio_raw
-        self.prefix = ''
-        #
-        # Prepare output directories
-        self.dir_output = Path(self.dirname_output)
-        if not self.dir_output.is_dir():
-            self.dir_output.mkdir(parents=True)
-        if self.save_show_tg_per_radio:
-            self.dir_show_tg_per_radio = self.dir_output / self.dirname_show_tg_per_radio
-            if not self.dir_show_tg_per_radio.is_dir():
-                self.dir_show_tg_per_radio.mkdir(parents=True)
-        if self.save_show_tg_per_radio_raw:
-            self.dir_show_tg_per_radio_raw = self.dir_output / self.dirname_show_tg_per_radio_raw
-            if not self.dir_show_tg_per_radio_raw.is_dir():
-                self.dir_show_tg_per_radio_raw.mkdir(parents=True)
-
-    def write_csv(self, records: Iterator[dict], filename: str) -> int:
-        """ Write csv file `filename` where each row is an item (dictionary) in `records`
-
-            :params records: An iterator of dictionaries, where each dictionary should have the same
-                             keys. The csv header row (specifying field names) is derived from the
-                             first element in `records`.
-            :type records: Iterator[dict]
-            :param filename: Filename for output csv file.
-            :type filename: str
-            :return: number of records (items) written to `filename`.
-            """
-
-        records_written = 0
-        try:
-            first_record = next(records)
-        except StopIteration:
-            return records_written
-        else:
-            fieldnames = first_record.keys()
-            fp = self.dir_output / f"{self.prefix}_{filename}"
-            with open(fp, 'w', newline='') as csvfile:
-                writer = csv.DictWriter(csvfile, fieldnames=fieldnames, extrasaction='ignore')
-                writer.writeheader()
-                writer.writerow(first_record)
-                records_written += 1
-                for record in records:
-                    writer.writerow(record)
-                    records_written += 1
-            return records_written
-
-    def write_show_tg(self, results: Iterator[SikShowTg]):
-        """ Write the output of 'show' command for TG radios by section.
-
-        :param results: An iterator of...
-        :return:
-        """
-        # keys correspond to the SikShowTg output attributes. Values correspond to filenames
-        section_filenames = {'interfaces': self.filenm_show_tg_interfaces,
-                             'inventory': self.filenm_show_tg_inventory,
-                             'ip': self.filenm_show_tg_ip,
-                             'links': self.filenm_show_tg_links,
-                             'node': self.filenm_show_tg_node,
-                             'sectors': self.filenm_show_tg_sectors,
-                             'system': self.filenm_show_tg_system,
-                             }
-        file_handles = {}
-        for result in results:
-            if self.save_show_tg_per_radio:
-                fp = self.dir_show_tg_per_radio / f"{self.prefix}_show_tg_{result.name}.txt"
-                with open(fp, 'wt') as f:
-                    f.write(str(result))
-            if self.save_show_tg_per_radio_raw:
-                fp = self.dir_show_tg_per_radio_raw / f"{self.prefix}_show_tg_raw_{result.name}.txt"
-                with open(fp, 'wt') as f:
-                    f.write(result.show_dump.replace('\r', ''))
-            for section, filenm in section_filenames.items():
-                try:
-                    header, data = getattr(result, section).tocsv()
-                except AttributeError:
-                    continue
-                else:
-                    if not file_handles.get(section):
-                        file_path = self.dir_output / f"{self.prefix}_{filenm}"
-                        file_handles[section] = open(file_path, 'wt')
-                        file_handles[section].write(header)
-                    file_handles[section].write(data)
-        for handle in file_handles.values():
-            handle.close()
-
-
-def worker_task(params):
-    """ A single worker task specified by `params`:
-        1. Extract parameters packed into dict 'params`.
-        2. Create an instance of :class:`sikcommander.SikCommander`.
-        3. Call the appropriate instance method based on the specified `action` and `include_xx` flags.
-        4. return the instance
-
-    :param params: A dictionary containing parameters required by worker task.
-                   Keys are: `action`, `script`, `credential`,
-                   `include_eh`, `include_bu`, `include_tu`, `include_tg`, `include_tg_remote_cns`,
-                   and `time_shift`. These are documented in :func:`run_scan`.
-    :type params: dict
-    :return: SikCommander
-    """
-
-    # Extract individual parameters from function argument params
-    action = params['action']
-    commands = params['script']
-    credential = params['credential']
-    include_bu = params['include_bu']
-    include_eh = params['include_eh']
-    include_tg = params['include_tg']
-    include_tg_remote_cns = params['include_tg_remote_cns']
-    include_tu = params['include_tu']
-    time_shift = params['time_shift']
-    # Start SikCommander
-    print(f"\tChecking {str(credential.ip_addr)}")
-    commander = SikCommander(credential, include_tg and include_tg_remote_cns)
-    match action:
-        case 'scan':
-            pass  # no need to do anything else
-        case 'show':
-            if commander.radio_type == 'EH' and include_eh:
-                commander.show_eh()
-            if commander.radio_type == 'BU' and include_bu:
-                commander.show_bu()
-            if commander.radio_type == 'TU' and include_tu:
-                commander.show_tu()
-            if commander.radio_type == 'TG' and include_tg:
-                commander.show_tg()
-        case 'script':
-            if commander.radio_type == 'EH' and include_eh:
-                commander.send_cmds(commands)
-            if commander.radio_type == 'BU' and include_bu:
-                commander.send_cmds(commands)
-            if commander.radio_type == 'TU' and include_tu:
-                commander.send_cmds(commands)
-            if commander.radio_type == 'TG' and include_tg:
-                commander.send_cmds(commands)
-                if commander.include_tg_remote_cns:
-                    commander.send_cmds_remote_cns(commands)
-        case 'set_tod':
-            if commander.radio_type == 'EH' and include_eh:
-                commander.set_tod(time_shift)
-            if commander.radio_type == 'BU' and include_bu:
-                commander.set_tod(time_shift)
-            if commander.radio_type == 'TU' and include_tu:
-                commander.set_tod(time_shift)
-            if commander.radio_type == 'TG' and include_tg:
-                commander.set_tod_tg(time_shift)
-    del commander.cli
-    return commander
 
 
 def run_batch(credentials: Credentials, *,
@@ -360,3 +149,218 @@ def run_batch(credentials: Credentials, *,
             r = (item for result in results if result.radio_type == 'TG' for item in result.output)
             wr.write_show_tg(r)
 
+
+def worker_task(params):
+    """ A single worker task specified by `params`:
+        1. Extract parameters packed into dict 'params`.
+        2. Create an instance of :class:`sikcommander.SikCommander`.
+        3. Call the appropriate instance method based on the specified `action` and `include_xx` flags.
+        4. return the instance
+
+    :param params: A dictionary containing parameters required by worker task.
+                   Keys are: `action`, `script`, `credential`,
+                   `include_eh`, `include_bu`, `include_tu`, `include_tg`, `include_tg_remote_cns`,
+                   and `time_shift`. These are documented in :func:`run_scan`.
+    :type params: dict
+    :return: SikCommander
+    """
+
+    # Extract individual parameters from function argument params
+    action = params['action']
+    commands = params['script']
+    credential = params['credential']
+    include_bu = params['include_bu']
+    include_eh = params['include_eh']
+    include_tg = params['include_tg']
+    include_tg_remote_cns = params['include_tg_remote_cns']
+    include_tu = params['include_tu']
+    time_shift = params['time_shift']
+    # Start SikCommander
+    print(f"\tChecking {str(credential.ip_addr)}")
+    commander = SikCommander(credential, include_tg and include_tg_remote_cns)
+    match action:
+        case 'scan':
+            pass  # no need to do anything else
+        case 'show':
+            if commander.radio_type == 'EH' and include_eh:
+                commander.show_eh()
+            if commander.radio_type == 'BU' and include_bu:
+                commander.show_bu()
+            if commander.radio_type == 'TU' and include_tu:
+                commander.show_tu()
+            if commander.radio_type == 'TG' and include_tg:
+                commander.show_tg()
+        case 'script':
+            if commander.radio_type == 'EH' and include_eh:
+                commander.send_cmds(commands)
+            if commander.radio_type == 'BU' and include_bu:
+                commander.send_cmds(commands)
+            if commander.radio_type == 'TU' and include_tu:
+                commander.send_cmds(commands)
+            if commander.radio_type == 'TG' and include_tg:
+                commander.send_cmds(commands)
+                if commander.include_tg_remote_cns:
+                    commander.send_cmds_remote_cns(commands)
+        case 'set_tod':
+            if commander.radio_type == 'EH' and include_eh:
+                commander.set_tod(time_shift)
+            if commander.radio_type == 'BU' and include_bu:
+                commander.set_tod(time_shift)
+            if commander.radio_type == 'TU' and include_tu:
+                commander.set_tod(time_shift)
+            if commander.radio_type == 'TG' and include_tg:
+                commander.set_tod_tg(time_shift)
+    del commander.cli
+    return commander
+
+
+class WriteResults:
+    """ A collection of methods for saving the scan results in multiple text files.
+    """
+
+    def __init__(self, *,
+                 dir_output_name: str = 'output',
+                 dir_show_tg_per_radio_name: str = 'show_tg_per_radio',
+                 dir_show_tg_per_radio_raw_name: str = 'show_tg_per_radio_raw',
+                 filenm_scan: str = 'scan_results.csv',
+                 filenm_cmds: str = 'cmds_results.csv',
+                 filenm_show_eh: str = 'show_eh.csv',
+                 filenm_show_bu: str = 'show_bu.csv',
+                 filenm_show_tu: str = 'show_tu.csv',
+                 filenm_show_tg_interfaces: str = 'show_tg_interfaces.csv',
+                 filenm_show_tg_inventory: str = 'show_tg_inventory.csv',
+                 filenm_show_tg_ip: str = 'show_tg_ip.csv',
+                 filenm_show_tg_links: str = 'show_tg_links.csv',
+                 filenm_show_tg_node: str = 'show_tg_node.csv',
+                 filenm_show_tg_sectors: str = 'show_tg_sectors.csv',
+                 filenm_show_tg_system: str = 'show_tg_system.csv',
+                 filenm_errors: str = 'errors.csv',
+                 save_show_tg_per_radio: bool = True,
+                 save_show_tg_per_radio_raw: bool = False,
+                 ):
+        """
+
+        :param dir_output_name: Name of the directory into which results are written
+        :param dir_show_tg_per_radio_name: Name of directory into which *show* results for individual TG radios
+                                           are written. Applicable only if `save_show_tg_per_radio` == True.
+        :param dir_show_tg_per_radio_raw_name: Name of directory into which raw *show* output for individual TG radios
+                                               are written. Applicable only if `save_show_tg_per_radio_raw` == True.
+        :param filenm_scan: Output filename for scan results.
+        :param filenm_cmds: Output filename for script results.
+        :param filenm_show_eh: Output filename for show results of EH radios.
+        :param filenm_show_bu: Output filename for show results of BU radios.
+        :param filenm_show_tu: Output filename for show results of TU radios.
+        :param filenm_show_tg_interfaces: Output filename for show results of TG radios: **interfaces** section.
+        :param filenm_show_tg_inventory: Output filename for show results of TG radios: **inventory** section.
+        :param filenm_show_tg_ip: Output filename for show results of TG radios: **ip** section.
+        :param filenm_show_tg_links: Output filename for show results of TG radios: **links** section.
+        :param filenm_show_tg_node:  Output filename for show results of TG radios: **node** section.
+        :param filenm_show_tg_sectors:  Output filename for show results of TG radios: **sectors** section.
+        :param filenm_show_tg_system:  Output filename for show results of TG radios: **system** section.
+        :param filenm_errors: Output filename for errors
+        :param save_show_tg_per_radio: Applicable to TG radios only: If True, save the output of 'show' for
+                                       individual radios.
+        :param save_show_tg_per_radio_raw: Applicable to TG radios only: If True, save the raw dump output of
+                                           'show' for individual radios.
+        """
+        self.dirname_output = dir_output_name
+        self.dirname_show_tg_per_radio = dir_show_tg_per_radio_name
+        self.dirname_show_tg_per_radio_raw = dir_show_tg_per_radio_raw_name
+        self.filenm_scan = filenm_scan
+        self.filenm_cmds = filenm_cmds
+        self.filenm_show_eh = filenm_show_eh
+        self.filenm_show_bu = filenm_show_bu
+        self.filenm_show_tu = filenm_show_tu
+        self.filenm_show_tg_interfaces = filenm_show_tg_interfaces
+        self.filenm_show_tg_inventory = filenm_show_tg_inventory
+        self.filenm_show_tg_ip = filenm_show_tg_ip
+        self.filenm_show_tg_links = filenm_show_tg_links
+        self.filenm_show_tg_node = filenm_show_tg_node
+        self.filenm_show_tg_sectors = filenm_show_tg_sectors
+        self.filenm_show_tg_system = filenm_show_tg_system
+        self.filenm_errors = filenm_errors
+        self.save_show_tg_per_radio = save_show_tg_per_radio
+        self.save_show_tg_per_radio_raw = save_show_tg_per_radio_raw
+        self.prefix = ''
+        #
+        # Prepare output directories
+        self.dir_output = Path(self.dirname_output)
+        if not self.dir_output.is_dir():
+            self.dir_output.mkdir(parents=True)
+        if self.save_show_tg_per_radio:
+            self.dir_show_tg_per_radio = self.dir_output / self.dirname_show_tg_per_radio
+            if not self.dir_show_tg_per_radio.is_dir():
+                self.dir_show_tg_per_radio.mkdir(parents=True)
+        if self.save_show_tg_per_radio_raw:
+            self.dir_show_tg_per_radio_raw = self.dir_output / self.dirname_show_tg_per_radio_raw
+            if not self.dir_show_tg_per_radio_raw.is_dir():
+                self.dir_show_tg_per_radio_raw.mkdir(parents=True)
+
+    def write_csv(self, records: Iterator[dict], filename: str) -> int:
+        """ Write csv file `filename` where each row is an item (dictionary) in `records`
+
+            :param records: An iterator of dictionaries, where each dictionary should have the same
+                             keys. The csv header row (specifying field names) is derived from the
+                             first element in `records`.
+            :type records: Iterator[dict]
+            :param filename: Filename for output csv file.
+            :type filename: str
+            :return: number of records (items) written to `filename`.
+            """
+
+        records_written = 0
+        try:
+            first_record = next(records)
+        except StopIteration:
+            return records_written
+        else:
+            fieldnames = first_record.keys()
+            fp = self.dir_output / f"{self.prefix}_{filename}"
+            with open(fp, 'w', newline='') as csvfile:
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames, extrasaction='ignore')
+                writer.writeheader()
+                writer.writerow(first_record)
+                records_written += 1
+                for record in records:
+                    writer.writerow(record)
+                    records_written += 1
+            return records_written
+
+    def write_show_tg(self, results: Iterator[SikShowTg]):
+        """ Write the output of 'show' command for TG radios by section.
+
+        :param results: An iterator of...
+        :return:
+        """
+        # keys correspond to the SikShowTg output attributes. Values correspond to filenames
+        section_filenames = {'interfaces': self.filenm_show_tg_interfaces,
+                             'inventory': self.filenm_show_tg_inventory,
+                             'ip': self.filenm_show_tg_ip,
+                             'links': self.filenm_show_tg_links,
+                             'node': self.filenm_show_tg_node,
+                             'sectors': self.filenm_show_tg_sectors,
+                             'system': self.filenm_show_tg_system,
+                             }
+        file_handles = {}
+        for result in results:
+            if self.save_show_tg_per_radio:
+                fp = self.dir_show_tg_per_radio / f"{self.prefix}_show_tg_{result.name}.txt"
+                with open(fp, 'wt') as f:
+                    f.write(str(result))
+            if self.save_show_tg_per_radio_raw:
+                fp = self.dir_show_tg_per_radio_raw / f"{self.prefix}_show_tg_raw_{result.name}.txt"
+                with open(fp, 'wt') as f:
+                    f.write(result.show_dump.replace('\r', ''))
+            for section, filenm in section_filenames.items():
+                try:
+                    header, data = getattr(result, section).tocsv()
+                except AttributeError:
+                    continue
+                else:
+                    if not file_handles.get(section):
+                        file_path = self.dir_output / f"{self.prefix}_{filenm}"
+                        file_handles[section] = open(file_path, 'wt')
+                        file_handles[section].write(header)
+                    file_handles[section].write(data)
+        for handle in file_handles.values():
+            handle.close()

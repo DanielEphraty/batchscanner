@@ -1,3 +1,5 @@
+""" A parser for the output of a MultiHaul TG 'show' """
+
 from collections import abc
 import datetime
 import ipaddress
@@ -410,7 +412,7 @@ class SikShowTgSection(abc.MutableSequence):
         Essentially a list with some added functionality.
     """
 
-    def __init__(self, identifier:str, name: str, section: str = ''):
+    def __init__(self, identifier: str, name: str, section: str = ''):
         """ Initialises an instance of the class.
 
             :param name: an arbitrary identifier, typically the name of the radio
@@ -534,6 +536,7 @@ class SikShowTgAtom:
 class SikShowTgAtomSystem(SikShowTgAtom):
     """ Tokens derived from the **system** section of the 'show' dump.
     """
+
     def __init__(self, system):
         #: If required, change only the dictionary values in `tokens` (changing the keys will break the code)
         self.tokens = {'product': 'product',
@@ -550,7 +553,7 @@ class SikShowTgAtomSystem(SikShowTgAtom):
 
     def parse(self, system):
         location = _vbkild(system, 'location', self.location)
-        self.location = str(location).replace(',',';')
+        self.location = str(location).replace(',', ';')
         state = _vbkild(system, 'state')
         self.product = _vbkild(state, 'product', self.product)
         uptime = _vbkild(state, 'uptime', self.uptime)
@@ -620,6 +623,7 @@ class SikShowTgAtomInterface(SikShowTgAtom):
 class SikShowTgAtomInventory(SikShowTgAtom):
     """ Tokens derived from the **inventory** section of the 'show' dump.
     """
+
     def __init__(self, interface):
         #: If required, change only the dictionary values in `tokens` (changing the keys will break the code)
         self.tokens = {'sn': 'sn',
