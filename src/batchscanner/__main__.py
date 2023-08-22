@@ -74,7 +74,8 @@ def main():
 
     print(f"\nWelcome to {bold('batchscanner')} (ver {batchscanner.__version__}): ", end='')
     print(f"a batch tool for Siklu radios.")
-    print(f"Author: {batchscanner.__author__}, 2023.\n")
+    print(f"Author: {batchscanner.__author__}, 2023.")
+    print(f"Documentation: https://batchscanner.readthedocs.io.\n")
 
     # Parse command-line arguments
     args = parse_args()

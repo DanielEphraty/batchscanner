@@ -39,7 +39,7 @@ This option does not require a Python environment set up.
 #. Download one of the following zip files based on your OS:
 
    - Windows 64bit:
-     `download link <https://github.com/DanielEphraty/batchscanner/releases/latest/download/batchscanner-x64-0.1.2.zip>`_
+     `download link <https://github.com/DanielEphraty/batchscanner/releases/latest/download/batchscanner-x64-0.1.3.zip>`_
 
 #. Extract the zip file to your local drive
 
@@ -49,6 +49,11 @@ As a Python script
 .. code-block:: shell
 
    $ pip install batchscanner-siklu
+
+.. note::
+   You might like to copy the files: *config.toml*, *sikssh_config.toml*, and *network.txt*
+   from the *Lib/site-packages/batchscanner* directory (in your Python environment) to
+   your working directory - as templates, then edit them as required.
 
 Usage
 ======

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "bachscanner-siklu"
-version = "0.1.2"
+version = "0.1.3"
 description = "A script to batch-scan/query/configure multiple Siklu radios"
 readme = "README.rst"
 authors = [{ name = "Daniel Ephraty", email = "daniel@ephraty.com" }]
