@@ -126,4 +126,3 @@ meanings, refer to the *Parameters* section :func:`~batchscanner.batchscan.run_b
     time_shift = 0                        # Number of hours to add to computer time when configuring date/time (applicable only if action='set_tod')
 
 
-

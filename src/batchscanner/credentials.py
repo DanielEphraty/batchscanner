@@ -178,4 +178,3 @@ class Credentials(abc.Sequence):
             end_index = min(start_index + batch_size, len(self))
             yield self[start_index: end_index]
 
-

@@ -14,4 +14,3 @@ log_enable = true               # Enable logging
 log_dir = 'ssh_logs'            # Directory for log files
 log_level_console = 'CRITICAL'  # Console logger level: DEBUG, INFO, WARNING, ERROR, CRITICAL
 log_level_file = 'INFO'         # File logger level: DEBUG, INFO, WARNING, ERROR, CRITICAL
-

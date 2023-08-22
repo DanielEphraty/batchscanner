@@ -30,4 +30,3 @@ requires-python = ">=3.11"
     repository    = "https://github.com/DanielEphraty/batchscanner"
     documentation = "https://batchscanner.readthedocs.io/en/latest/"
 
-

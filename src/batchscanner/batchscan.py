@@ -364,3 +364,4 @@ class WriteResults:
                     file_handles[section].write(data)
         for handle in file_handles.values():
             handle.close()
+

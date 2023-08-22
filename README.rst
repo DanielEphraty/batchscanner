@@ -132,4 +132,3 @@ Example content of configuration file:
     save_show_tg_per_radio_raw = false    # If true, save aso the raw (unparsed) 'show' output per radio (applicable only to TG)
     time_shift = 0                        # Number of hours to add to computer time when configuring date/time (applicable only if action='set_tod')
 
-

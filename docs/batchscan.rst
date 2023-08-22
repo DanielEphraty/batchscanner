@@ -54,4 +54,3 @@ Class Information:
 
 .. autoclass:: batchscanner.batchscan.WriteResults
 
-

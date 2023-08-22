@@ -36,4 +36,3 @@ via their CLI (SSH) interface. It is built as four layers:
 
     Use of the command-line launcher is described in :doc:`quick_start`.
 
-
