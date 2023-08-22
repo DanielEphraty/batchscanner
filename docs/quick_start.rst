@@ -4,7 +4,6 @@ Quickstart
 :program:`Batchscanner` is a script to batch-scan and/or query and/or configure
 multiple `Siklu Communications <https://www.siklu.com>`_ radios
 via their CLI (SSH) interface.
-
 It operates over a user-defined range of IP addresses and/or networks, and supports
 the following *actions*:
 

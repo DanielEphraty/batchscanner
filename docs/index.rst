@@ -16,9 +16,8 @@ Batchscanner
    Project still under development.
 
 :program:`Batchscanner` is a script to batch-scan and/or query and/or configure multiple Siklu radios
-via their CLI (SSH) interface.
-It operates over a user-defined range of IP addresses and/or networks, executes some action,
-and writes the results to csv/txt files.
+via their CLI (SSH) interface. It operates over a user-defined range of IP addresses and/or networks,
+executes some action, and writes the results to csv/txt files.
 
 .. note::
    This program is a personal initiative and contribution.
