@@ -8,6 +8,7 @@ Batchscanner
 
 :Author: Daniel Ephraty
 :Source code: https://github.com/DanielEphraty/batchscanner
+:PyPI project: https://pypi.org/project/bachscanner-siklu
 :Licence: MIT Licence
 :Version: |version|
 
