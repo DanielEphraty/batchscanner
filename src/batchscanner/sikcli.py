@@ -1,6 +1,5 @@
 """ Class SikCli for low-level management of a CLI SSH session to a Siklu radio """
 
-from importlib import resources
 import ipaddress
 import logging
 import os
@@ -56,7 +55,8 @@ class SikCli:
     # Parse TOML config file and override default parameters
     _params = {}
     try:
-        _params = tomllib.loads(resources.files('batchscanner').joinpath(CONFIG_FILENM).read_text())
+        with open(CONFIG_FILENM, 'rb') as fp:
+            _params = tomllib.load(fp)
     except FileNotFoundError:
         print(f"SikCli: Using default program parameters: file '{CONFIG_FILENM}' not found")
     except tomllib.TOMLDecodeError as e:

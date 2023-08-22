@@ -1,7 +1,6 @@
 """ A command-line script for launching batchscanner """
 
 import argparse
-from importlib import resources
 import multiprocessing
 from sys import exit
 import tomllib
@@ -21,7 +20,7 @@ def parse_args():
     parser.add_argument("-a",
                         dest='action',
                         choices=['scan', 'show', 'script', 'set_tod'],
-                        default='show',
+                        default='scan',
                         help='''Action for batchscanner to take (default: %(default)s). One of: 
                                 scan: scan the network and identify which IP address is a Siklu radio;
                                 show: extract key metrics from radios (parsed outputs of 'show' commands);
@@ -84,7 +83,8 @@ def main():
     filenm = args.config_filename
     _params = {}
     try:
-        _params = tomllib.loads(resources.files('batchscanner').joinpath(filenm).read_text())
+        with open(filenm, 'rb') as fp:
+            _params = tomllib.load(fp)
     except FileNotFoundError:
         print(f"Using default program parameters: file '{filenm}' not found")
     except tomllib.TOMLDecodeError as e:
@@ -116,7 +116,8 @@ def main():
     text_from_filenm = ''
     print(f"Attempting to read range of IP addresses and credentials from file: '{filenm}'")
     try:
-        text_from_filenm = resources.files('batchscanner').joinpath(filenm).read_text()
+        with open(filenm, 'rt') as fp:
+            text_from_filenm = fp.read()
     except FileNotFoundError:
         print(f"File not found: '{filenm}'")
     credentials = Credentials(text_to_parse=text_from_filenm)
@@ -130,8 +131,9 @@ def main():
     if args.action == 'script':
         print(f"Attempting to read script contents from file: {script_filename}")
         try:
-            text_from_filenm = resources.files('batchscanner').joinpath(script_filename).read_text()
-            script = [line.strip() for line in text_from_filenm.split('\n')]
+            with open(script_filename, 'rt') as fp:
+                text_from_filenm = fp.read()
+                script = [line.strip() for line in text_from_filenm.split('\n')]
         except FileNotFoundError:
             print(f"File {script_filename} not found.")
         if not script:
