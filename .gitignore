@@ -1,19 +1,21 @@
 .idea/*
 .pytest_cache/*
 __pychache__/*
-build/*
-dist/*
-bin/*
+/bin/
+/build/
+/dist/
 
 /docs/_build/
 /doc_source/
 /docs/make.bat
 /docs/Makefile
 
-output/*
-ssh_logs/*
-
-
-
+/src/bachscanner_siklu.egg-info/
 /src/batchscanner/__main__.spec
+
+/output
+/ssh_logs
+
 /batchscanner-x64.spec
+/process_tips.txt
+
