@@ -986,3 +986,4 @@ class SikShowTgAtomLink(SikShowTgAtom):
                 except AttributeError:
                     value = ''
             setattr(self, token, value)
+

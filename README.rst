@@ -41,7 +41,7 @@ This option does not require a Python environment set up.
 #. Download one of the following zip files based on your OS:
 
    - Windows 64bit:
-     `download link <https://github.com/DanielEphraty/batchscanner/releases/latest/download/batchscanner-x64.zip>`_
+     `download link <https://github.com/DanielEphraty/batchscanner/releases/latest/download/batchscanner-x64-0.1.2.zip>`_
 
 #. Extract the zip file to your local drive
 
