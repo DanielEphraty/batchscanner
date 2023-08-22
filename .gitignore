@@ -8,7 +8,7 @@
 /docs/make.bat
 /docs/Makefile
 
-/src/bachscanner_siklu.egg-info/
+/src/batchscanner_siklu.egg-info/
 /src/batchscanner/__main__.spec
 /src/batchscanner/__pycache__/
 /src/batchscanner/parsers/__pycache__/
