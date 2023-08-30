@@ -178,38 +178,39 @@ def worker_task(params):
     # Start SikCommander
     print(f"\tChecking {str(credential.ip_addr)}")
     commander = SikCommander(credential, include_tg and include_tg_remote_cns)
-    match action:
-        case 'scan':
-            pass  # no need to do anything else
-        case 'show':
-            if commander.radio_type == 'EH' and include_eh:
-                commander.show_eh()
-            if commander.radio_type == 'BU' and include_bu:
-                commander.show_bu()
-            if commander.radio_type == 'TU' and include_tu:
-                commander.show_tu()
-            if commander.radio_type == 'TG' and include_tg:
-                commander.show_tg()
-        case 'script':
-            if commander.radio_type == 'EH' and include_eh:
-                commander.send_cmds(commands)
-            if commander.radio_type == 'BU' and include_bu:
-                commander.send_cmds(commands)
-            if commander.radio_type == 'TU' and include_tu:
-                commander.send_cmds(commands)
-            if commander.radio_type == 'TG' and include_tg:
-                commander.send_cmds(commands)
-                if commander.include_tg_remote_cns:
-                    commander.send_cmds_remote_cns(commands)
-        case 'set_tod':
-            if commander.radio_type == 'EH' and include_eh:
-                commander.set_tod(time_shift)
-            if commander.radio_type == 'BU' and include_bu:
-                commander.set_tod(time_shift)
-            if commander.radio_type == 'TU' and include_tu:
-                commander.set_tod(time_shift)
-            if commander.radio_type == 'TG' and include_tg:
-                commander.set_tod_tg(time_shift)
+    if commander.connected:
+        match action:
+            case 'scan':
+                pass  # no need to do anything else
+            case 'show':
+                if commander.radio_type == 'EH' and include_eh:
+                    commander.show_eh()
+                if commander.radio_type == 'BU' and include_bu:
+                    commander.show_bu()
+                if commander.radio_type == 'TU' and include_tu:
+                    commander.show_tu()
+                if commander.radio_type == 'TG' and include_tg:
+                    commander.show_tg()
+            case 'script':
+                if commander.radio_type == 'EH' and include_eh:
+                    commander.send_cmds(commands)
+                if commander.radio_type == 'BU' and include_bu:
+                    commander.send_cmds(commands)
+                if commander.radio_type == 'TU' and include_tu:
+                    commander.send_cmds(commands)
+                if commander.radio_type == 'TG' and include_tg:
+                    commander.send_cmds(commands)
+                    if commander.include_tg_remote_cns:
+                        commander.send_cmds_remote_cns(commands)
+            case 'set_tod':
+                if commander.radio_type == 'EH' and include_eh:
+                    commander.set_tod(time_shift)
+                if commander.radio_type == 'BU' and include_bu:
+                    commander.set_tod(time_shift)
+                if commander.radio_type == 'TU' and include_tu:
+                    commander.set_tod(time_shift)
+                if commander.radio_type == 'TG' and include_tg:
+                    commander.set_tod_tg(time_shift)
     del commander.cli
     return commander
 

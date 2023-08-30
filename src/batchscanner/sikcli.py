@@ -304,6 +304,8 @@ class SikCli:
                                  auth_timeout=self.auth_timeout)
             except paramiko.AuthenticationException:
                 self.last_err = 'Authentication failed'
+                self._get_transport_and_banner()    # Banner may be retrieved even if authentication fails
+                self._derive_model()
             except paramiko.SSHException:
                 self.last_err = 'Unspecified SSH Error in connecting to device'
             except socket.timeout:
@@ -332,14 +334,13 @@ class SikCli:
 
     def disconnect(self):
         """ Disconnect SSH session and close CLI virtual terminal. Reset values for:
-            :attr:`banner`, :attr:`last_err`, :attr:`model`, :attr:`name`, :attr:`prompt`, :attr:`sn`,
-            :attr:`sw`, :attr:`tunnel_stack`.
+            :attr:`banner`, :attr:`prompt`, `tunnel_stack`.
             """
         self.ssh.close()
         self._channel = None
         self.banner = ''
         self.prompt = ''
-        self._derive_model()
+        # self._derive_model()
         self.tunnel_stack = []
         self.prompt = ''
         if self._transport:  # report disconnection if session was meant to be open

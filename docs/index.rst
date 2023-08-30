@@ -42,7 +42,10 @@ executes some action, and writes the results to csv/txt files.
    credentials
    parsers
    
+.. toctree::
+   :caption: Change Log
 
+   changelog.rst
 
 
 .. Indices and tables

@@ -25,6 +25,8 @@ class SikCommand:
     response: str = ""
     #: Boolean flag indicating  if command executed successfully - updated after :attr:`command` is executed.
     success: bool = False
+    #: Timestamp for when command executed
+    timestamp: datetime.datetime | None = None
 
     def __repr__(self):
         max_len = 50
@@ -121,7 +123,7 @@ class SikCommander:
         #: Populated only if :attr:`include_tg_remote_cns` is True,
         #: and an attempt to extract remote CN radios is successful. Otherwise, an empty list.
         self.tg_remote_cns = []
-        if self.radio_type == 'TG' and include_tg_remote_cns:
+        if self.connected and self.radio_type == 'TG' and include_tg_remote_cns:
             self.get_tg_remote_cns()
         #: A list containing the parsed outputs of the *show* methods.
         self.output = []
@@ -225,6 +227,7 @@ class SikCommander:
             command.target_id = target_id
             command.response = self.cli.send(command.command)
             if command.response:
+                command.timestamp = datetime.datetime.now()
                 command.success = True
                 if any(err in command.response for err in ('Ambiguous command',
                                                            'CLI syntax error',

@@ -22,6 +22,9 @@ class Credential:
     #: Password to log into radio
     password: str = DEFAULT_PASSWORD
 
+    def __hash__(self):
+        return hash(self.ip_addr)
+
     def __lt__(self, other):
         return self.ip_addr < other.ip_addr
 
@@ -33,7 +36,7 @@ class Credential:
 
 
 class Credentials(abc.Sequence):
-    """ A sequence of :class:`Credential`, sorted by IP address
+    """ A sequence of :class:`Credential`, sorted by IP address, and without any duplicates
     """
 
     def __init__(self, items=None, *, text_to_parse=None):
@@ -86,13 +89,15 @@ class Credentials(abc.Sequence):
                 self._credentials = [items]
         else:
             self._credentials = []
-        self._credentials.sort()
+        # Remove duplicates and sort
+        self._uniquify()
 
     def __getitem__(self, item):
         if type(item) == int:
             return self._credentials[item]
         else:
             return Credentials(self._credentials[item])
+
 
     def __len__(self):
         return len(self._credentials)
@@ -161,6 +166,14 @@ class Credentials(abc.Sequence):
 
         print(f"Parsed a total of {len(credentials)} IP addresses")
         return credentials
+
+    def _uniquify(self):
+        """ Remove any duplicate IP addresses, and sort the remaining ones
+        """
+
+        credentials_set = set(self._credentials)
+        self._credentials = list(credentials_set)
+        self._credentials.sort()
 
     def get_batches(self, batch_size=1000):
         """ A generator method which yields batches at a time, where each batch is a list of :class:`Credential`.
