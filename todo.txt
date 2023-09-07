@@ -1,8 +1,5 @@
-sikcli_ssh:
-    Improve send():
-        remove from buffer any text prior to prompt
-        remove any text following last prompt
-
+multiprocessing:
+    subject worker tasks to timeout
 
 parse_show_tg:
     check argument 'silent' in SikShowTg
@@ -11,6 +8,7 @@ Documentation:
     parse_show_eh
 
 Testing
+
 
 
 

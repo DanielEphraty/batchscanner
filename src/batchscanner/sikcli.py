@@ -6,10 +6,12 @@ import os
 import paramiko
 import re
 import socket
-import time
 import tomllib
 
+
 CONFIG_FILENM = 'sikssh_config.toml'  # Constants text_to_parse
+PROMPT_RE = re.compile(r"(\S+>)\s*(\S+>)")
+QUIT_RE = re.compile(r"quit\s*(\S+>)")
 
 
 class SikCli:
@@ -41,7 +43,6 @@ class SikCli:
         banner_timeout      4           Timeout [sec] to wait for the server to send the SSH banner
         auth_timeout        6           Timeout [sec] to wait for an authentication response from the server
         rw_timeout          1           Timeout [sec] on blocking read/write
-        response_timeout    1           Timeout [sec] for radio to response to a command
         many                9999999     Max size of read buffer
         prompt_retries      5           The number of times to attempt and get the CLI prompt
         terminal_height     5000        Number of rows in VT100 terminal
@@ -67,7 +68,6 @@ class SikCli:
         auth_timeout = _params.get('auth_timeout',
                                    6)  # Timeout [sec] to wait for an authentication response from the server
         rw_timeout = _params.get('rw_timeout', 1)  # Timeout [sec] on blocking read/write
-        response_timeout = _params.get('response_timeout', 1)  # Timeout [sec] for radio to response to a command
         many = _params.get('many', 9999999)  # Max size of read buffer
         prompt_retries = _params.get('prompt_retries', 5)  # The number of times to attempt and get the CLI prompt
         terminal_height = _params.get('terminal_height', 5000)  # Number of rows in VT100 terminal
@@ -304,7 +304,7 @@ class SikCli:
                                  auth_timeout=self.auth_timeout)
             except paramiko.AuthenticationException:
                 self.last_err = 'Authentication failed'
-                self._get_transport_and_banner()    # Banner may be retrieved even if authentication fails
+                self._get_transport_and_banner()  # Banner may be retrieved even if authentication fails
                 self._derive_model()
             except paramiko.SSHException:
                 self.last_err = 'Unspecified SSH Error in connecting to device'
@@ -378,38 +378,44 @@ class SikCli:
             :rtype: str
             """
         # Append a CR to cmd (if necessary)
-        cmd = cmd.strip()
-        cmd_to_send = cmd + '\n'
-        if self.is_connected():  # Attempt to send cmd
-            try:
-                # Clear receive buffer (if necessary)
-                if self._channel.recv_ready():
-                    _ = self._channel.recv(self.many)
-                # Send command and sleep
-                self._channel.send(cmd_to_send)
-                time.sleep(self.response_timeout)
-                # Receive response
-                # if self.channel.recv_ready():
-                response = self._channel.recv(self.many)
-            except socket.error:
+        cmd_bytes = f"{cmd.strip()}\n\n".encode()  # Appended 2x \n to easily recognise end of response
+        if self.is_connected():
+            if self._channel.recv_ready():  # Clear receive buffer (if necessary)
+                _ = self._channel.recv(self.many)
+            try:  # Attempt to send cmd
+                self._channel.sendall(cmd_bytes)
+            except (socket.timeout, socket.error):
                 err_msg = f"Command '{cmd}' may not have been sent due to socket error"
                 self._logger.warning(f"{self._logger_prefix()}: {err_msg}")
                 return ''
             else:
+                still_reading = True  # Read the entire response
+                response = ''
+                while still_reading:
+                    try:
+                        data = self._channel.recv(self.many)
+                    except socket.timeout:
+                        still_reading = False
+                    else:
+                        response += data.decode()
+                        # Shortcuts for recognising end of response (avoid waiting for socket.timeout)
+                        m = PROMPT_RE.search(response)  # Look for 2 consecutive prompts
+                        if m and m.lastindex == 2:
+                            still_reading = False
+                        elif QUIT_RE.search(response):  # Special case of TG 'quit' (only a single prompt)
+                            still_reading = False
+
                 # Remove cmd echo from response
-                if response:
-                    response_no_cmd = response.decode().replace(cmd, '').strip()
-                    if response_no_cmd:
-                        if cmd:
-                            self._logger.info(f"{self._logger_prefix()}: Sent command: '{cmd}'")
-                        if remove_prompt and self.prompt:
-                            while self.prompt in response_no_cmd:
-                                response_no_cmd = response_no_cmd.replace(self.prompt, '')
-                        if '@' in response_no_cmd and cmd == 'show':
-                            print()
-                        return response_no_cmd.strip() + ' '
-                self._logger.warning(f"{self._logger_prefix()}: No response to command '{cmd}'")
-                return ''
+                response_no_cmd = response.replace(cmd, '')
+                if response_no_cmd:
+                    if cmd:
+                        self._logger.info(f"{self._logger_prefix()}: Sent command: '{cmd}'")
+                    if remove_prompt and self.prompt:
+                        response_no_cmd = response_no_cmd.replace(self.prompt, '')
+                    return response_no_cmd.strip() + ' '
+                else:
+                    self._logger.warning(f"{self._logger_prefix()}: No response to command '{cmd}'")
+                    return ''
         else:
             self._logger.warning(f"{self._logger_prefix()}: Command '{cmd}' not sent: ssh disconnected")
             return ''
@@ -426,10 +432,10 @@ class SikCli:
         """
         if self.is_connected():
             _ = self.send(f"connect {remote_name}")
-            self.tunnel_stack.append(self.name)
             self._get_prompt()
             self._derive_model()
             if self.name == remote_name:
+                self.tunnel_stack.append(self.name)
                 self._logger.info(f"{self._logger_prefix()}: Successfully tunneled into {remote_name}")
                 return True
             else:
@@ -451,17 +457,17 @@ class SikCli:
         """
         if self.is_connected():
             if self.tunnel_stack:
+                orig_name = self.name
                 _ = self.send(f"quit")
-                self.tunnel_stack.pop()
                 self._get_prompt()
                 self._derive_model()
-                self._logger.info(f"{self._logger_prefix()}: Successfully terminated tunnel")
-                return True
-            else:
-                error_msg = "Unable to tunnel out - already at top hierarchy"
-                self.last_err = error_msg
-                self._logger.warning(f"{self._logger_prefix()}: {error_msg}")
-                return False
+                if self.name != orig_name:
+                    self.tunnel_stack.pop()
+                    self._logger.info(f"{self._logger_prefix()}: Successfully terminated tunnel")
+                    return True
+            error_msg = "Unable to tunnel out - already at top hierarchy"
+            self.last_err = error_msg
+            self._logger.warning(f"{self._logger_prefix()}: {error_msg}")
+            return False
         else:
             return False
-
