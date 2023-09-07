@@ -5,7 +5,7 @@ Version 0.1.5 (07/09/2023)
 
     - Sped up waiting on responses to commands. Instead of timing out on response_timeout, continuously analyse response
       *incrementally*, to determine when completed
-    - As a consequence, response_timeout in config.toml no longer has any effect
+    - As a consequence, response_timeout in sikssh_config.toml no longer has any effect
     - Improved reliability of tunnel_in() and tunnel_out()
 
 
