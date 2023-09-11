@@ -296,6 +296,7 @@ class SikCommander:
                      SikShowEh.showeth4(),
                      SikShowEh.showlldp(),
                      SikShowEh.showlog(2),
+                     SikShowEh.showuseractivitylog(2),
                      )
         output = {'ip_addr': self.credential.ip_addr}
         commands = self.send_cmds([cmd for cmd, _ in show_cmds])
@@ -318,6 +319,7 @@ class SikCommander:
                      SikShowEh.showeth3(),
                      SikShowEh.showlldp(),
                      SikShowEh.showlog(2),
+                     SikShowEh.showuseractivitylog(2),
                      SikShowEh.showbaseunit(),
                      SikShowEh.showremoteterminalunit(),
                      )
@@ -341,6 +343,7 @@ class SikCommander:
                      SikShowEh.showeth3(),
                      SikShowEh.showlldp(),
                      SikShowEh.showlog(2),
+                     SikShowEh.showuseractivitylog(2),
                      SikShowEh.showterminalunit(),
                      )
         output = {'ip_addr': self.credential.ip_addr}
@@ -412,5 +415,3 @@ class SikCommander:
                                    ]
                     _ = self.send_cmds(commands_in, target_id)
                     self.cli.tunnel_out()
-
-

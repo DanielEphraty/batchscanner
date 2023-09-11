@@ -1,3 +1,11 @@
+Version 0.1.6 (11/09/2023)
+--------------------------
+
+* ``parse_show_eh``, ``sikcommander.py``:
+
+    - Added (last 2 entries from) user_activity_log to output of 'show'
+    - Added last_change counter to output of 'show' for external ports (eth1, eth2,...)
+
 Version 0.1.5 (07/09/2023)
 --------------------------
 

@@ -83,6 +83,7 @@ class SikShowEh:
         cmd = "show eth eth1"
         params = [CliResponseParams('eth1_oper', r'eth1\s+operational\s*:\s(\S*)\s'),
                   CliResponseParams('eth1_speed', r'eth1\s+eth-act-type\s*:\s(\S*)\s'),
+                  CliResponseParams('eth1_last_change', r'eth1\s+last-change\s*:\s(\S*)\s'),
                   ]
         return cmd, params
 
@@ -91,6 +92,7 @@ class SikShowEh:
         cmd = "show eth eth2"
         params = [CliResponseParams('eth2_oper', r'eth2\s+operational\s*:\s(\S*)\s'),
                   CliResponseParams('eth2_speed', r'eth2\s+eth-act-type\s*:\s(\S*)\s'),
+                  CliResponseParams('eth2_last_change', r'eth2\s+last-change\s*:\s(\S*)\s'),
                   ]
         return cmd, params
 
@@ -99,6 +101,7 @@ class SikShowEh:
         cmd = "show eth eth3"
         params = [CliResponseParams('eth3_oper', r'eth3\s+operational\s*:\s(\S*)\s'),
                   CliResponseParams('eth3_speed', r'eth3\s+eth-act-type\s*:\s(\S*)\s'),
+                  CliResponseParams('eth3_last_change', r'eth3\s+last-change\s*:\s(\S*)\s'),
                   ]
         return cmd, params
 
@@ -107,13 +110,8 @@ class SikShowEh:
         cmd = "show eth eth4"
         params = [CliResponseParams('eth4_oper', r'eth4\s+operational\s*:\s(\S*)\s'),
                   CliResponseParams('eth4_speed', r'eth4\s+eth-act-type\s*:\s(\S*)\s'),
+                  CliResponseParams('eth4_last_change', r'eth4\s+last-change\s*:\s(\S*)\s'),
                   ]
-        return cmd, params
-
-    @staticmethod
-    def showuseractivitylog(tail_length=1):
-        cmd = "show user-activity-log"
-        params = [CliResponseParams('events_log', r'(?s)(.*)', tail_length)]
         return cmd, params
 
     @staticmethod
@@ -211,4 +209,11 @@ class SikShowEh:
                                     0, SikShowEh._time_to_days),
                   ]
         return cmd, params
+
+    @staticmethod
+    def showuseractivitylog(tail_length=1):
+        cmd = "show user-activity-log"
+        params = [CliResponseParams('user_activity_log', r'(?s)(.*)', tail_length)]
+        return cmd, params
+
 
