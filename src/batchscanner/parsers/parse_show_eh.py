@@ -173,8 +173,8 @@ class SikShowEh:
     def showsystem():
         cmd = "show system"
         params = [CliResponseParams('system_descrip', r'system description\s*:\s(\S*)\s'),
-                  CliResponseParams('system_name', r'system name\s*:\s(\S*)\s'),
-                  CliResponseParams('system_location', r'system location\s*:\s(\S*)\s'),
+                  CliResponseParams('system_name', r'system name\s*:\s(".*")\s|system name\s*:\s(\S*)\s'),
+                  CliResponseParams('system_location', r'system location\s*:\s(".*")\s|system location\s*:\s(\S*)\s'),
                   CliResponseParams('system_date', r'system date\s*:\s(\S*)\s'),
                   CliResponseParams('system_time', r'system time\s*:\s(\S*)\s'),
                   CliResponseParams('system_up_days', r'system uptime\s*:\s(\S*)\s',

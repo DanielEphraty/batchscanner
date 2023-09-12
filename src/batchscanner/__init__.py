@@ -18,7 +18,7 @@ options:
 """
 
 __author__ = 'Daniel Ephraty'
-__version__ = '0.1.6'
+__version__ = '0.1.7'
 
 
 

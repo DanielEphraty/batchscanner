@@ -1,3 +1,11 @@
+Version 0.1.7 (12/09/2023)
+--------------------------
+
+* ``parse_show_eh``, ``sikcli.py``:
+
+    - Added support for cases where MH system name (and therefore the prompt) contains spaces (within double quotes)
+
+
 Version 0.1.6 (11/09/2023)
 --------------------------
 

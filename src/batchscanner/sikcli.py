@@ -10,7 +10,8 @@ import tomllib
 
 
 CONFIG_FILENM = 'sikssh_config.toml'  # Constants text_to_parse
-PROMPT_RE = re.compile(r"(\S+>)\s*(\S+>)")
+PROMPT1_RE = re.compile(r'(\S+>)\s*(\S+>)')
+PROMPT2_RE = re.compile(r'(".*">)\s*(".*">)')
 QUIT_RE = re.compile(r"quit\s*(\S+>)")
 
 
@@ -235,8 +236,12 @@ class SikCli:
             while prompt == '' and retries < self.prompt_retries:
                 prompt = self.send('', remove_prompt=False)
                 retries += 1
-            if m := re.match(r'(\S+>)', prompt):
-                self.prompt = m[1]
+            if '"' in prompt:
+                if m := re.match(r'(".*">)', prompt):
+                    self.prompt = m[1]
+            else:
+                if m := re.match(r'(\S+>)', prompt):
+                    self.prompt = m[1]
         return None
 
     def _logger_init(self) -> logging.Logger:
@@ -399,8 +404,9 @@ class SikCli:
                     else:
                         response += data.decode()
                         # Shortcuts for recognising end of response (avoid waiting for socket.timeout)
-                        m = PROMPT_RE.search(response)  # Look for 2 consecutive prompts
-                        if m and m.lastindex == 2:
+                        m1 = PROMPT1_RE.search(response)  # Look for 2 consecutive prompts
+                        m2 = PROMPT2_RE.search(response)  # Look for 2 consecutive prompts
+                        if (m1 and m1.lastindex == 2) or (m2 and m2.lastindex == 2):
                             still_reading = False
                         elif QUIT_RE.search(response):  # Special case of TG 'quit' (only a single prompt)
                             still_reading = False
